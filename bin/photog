@@ -1,0 +1,6 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Photography::Website;
+
+Photography::Website::generate();
