@@ -4,3 +4,7 @@ use strict;
 use Photography::Website;
 
 Photography::Website::generate();
+
+use File::ShareDir 'module_dir';
+use feature 'say';
+say "Here are your files, sir: " . module_dir('Photography::Website');

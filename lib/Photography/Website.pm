@@ -25,12 +25,12 @@ our @artists = (
 
 our @ignore        = ('Lightroom Backups');
 our $pictures      = "$ENV{'HOME'}/Pictures";
+our $watermark     = "$pictures/watermark.png";
 our $website       = cwd . "/photography";
 
 my $script_dir = "AAAARGH HOW CAN I EEVVER";
 
 our $template_file = "$script_dir/index.template";
-our $watermark     = "$script_dir/watermark.png";
 our $static        = "$script_dir/static";
 
 our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
