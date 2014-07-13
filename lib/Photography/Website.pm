@@ -7,12 +7,12 @@ use feature qw(say);
 use File::Find;
 use File::Basename;
 use Image::Size;
-use Cwd qw(cwd abs_path);
+use Cwd;
 use Digest::MD5 qw(md5_hex);
 use Image::ExifTool qw(:Public);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
-my @artists = (
+our @artists = (
     {
         artist => 'Jaap Joris Vens - www.superformosa.nl',
         copyright => 'http://creativecommons.org/licenses/by-sa/4.0/'
@@ -23,60 +23,104 @@ my @artists = (
     }
 );
 
-my @ignore        = ('Lightroom Backups');
-my $pictures      = "$ENV{'HOME'}/Pictures";
-my $script_dir    = dirname(abs_path($0));
-my $template_file = "$script_dir/index.template";
-my $watermark     = "$script_dir/watermark.png";
-my $website       = "$script_dir/photography";
-my $static        = "$script_dir/static";
-my $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
-my $private_regex = '(private)';
-my $hidden_regex  = '(hidden)';
+our @ignore        = ('Lightroom Backups');
+our $pictures      = "$ENV{'HOME'}/Pictures";
+our $website       = cwd . "/photography";
 
-=head1 Photography Website Generator
+my $script_dir = "AAAARGH HOW CAN I EEVVER";
+
+our $template_file = "$script_dir/index.template";
+our $watermark     = "$script_dir/watermark.png";
+our $static        = "$script_dir/static";
+
+our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
+our $private_regex = '(private)';
+our $hidden_regex  = '(hidden)';
+
+=head1 NAME
+
+Photography Website Generator
+
+=head1 SYNOPSIS
+
+=head2 Using the wrapper command:
+
+    photog
+
+=head2 In Perl code:
+
+    use Photography::Website;
+
+    @Photography::Website::artists = (
+        {
+            artist    => 'Your Name Here',
+            copyright => 'http://creativecommons.org/licenses/by-sa/4.0/'
+        }
+    );
+
+    Photography::Website::generate();
+
+=head1 DESCRIPTION
 
 This script generates a hierarchical, chronologically sorted
 photography website, with thumbnails and watermarked images, based
 on the user's ~/Pictures folder. It depends on Image::Magick for the
 image processing and on Image::ExifTool for manipulating EXIF data.
 
+=head2 Preconditions
+
 The following preconditions apply:
 
-=item * The ~/Pictures folder contains .jpg files with valid EXIF
-        information (specifically, the tag DateTimeOriginal, which is
-        used to render galleries in chronological order). If there are
-        raw files available with the same basename as a JPEG file
-        (*.dng, *.nef, *.cr2, or *.crw) their EXIF data will be copied
-        over to the JPEG file if needed. This helps when image editors
-        have removed or corrupted EXIF data.
+=over 2
 
-=item * The subfolders start with a date (YYYY-MM-DD) for sorting
-        purposes, followed by a name that will be used as the URL. If
-        the name contains the string "(hidden)", the gallery will be
-        unlisted in the parent gallery. If the name contains the
-        string "(private)", the gallery will only be available through
-        a secret URL. In these cases the use of a date is not
-        necessary, since these galleries will never be listed.
+=item *
+
+The ~/Pictures folder contains .jpg files with valid EXIF
+information (specifically, the tag DateTimeOriginal, which is used to
+render galleries in chronological order). If there are raw files
+available with the same basename as a JPEG file (*.dng, *.nef, *.cr2,
+or *.crw) their EXIF data will be copied over to the JPEG file if
+needed. This helps when image editors have removed or corrupted EXIF
+data.
+
+=item *
+
+The subfolders start with a date (YYYY-MM-DD) for sorting
+purposes, followed by a name that will be used as the URL. If the name
+contains the string "(hidden)", the gallery will be unlisted in the
+parent gallery. If the name contains the string "(private)", the
+gallery will only be available through a secret URL. In these cases
+the use of a date is not necessary, since these galleries will never
+be listed.
 
 =back
+
+=head2 User input
 
 The script prompts the user for input in the following situations:
 
-=item * When generating a gallery thumbnail, it will ask how many
-        thumbnails it should contain. Currently the choices are 3, 6,
-        or 9. Once created, gallery thumbnails will never be
-        overwritten.
+=over 2
 
-=item * When the script generates scaled web images, and it encounters
-        an image with no "Artist" and "Copyright" tags, it will ask
-        the user to choose between the available artists in the
-        @artists array. Then it will update the EXIF data of the
-        original image.
+=item *
+
+When generating a gallery thumbnail, it will ask how many thumbnails
+it should contain. Currently the choices are 3, 6, or 9. Once created,
+gallery thumbnails will never be overwritten.
+
+=item *
+
+When the script generates scaled web images, and it encounters an
+image with no "Artist" and "Copyright" tags, it will ask the user to
+choose between the available artists in the @artists array. Then it
+will update the EXIF data of the original image.
 
 =back
 
-The output will be written to a directory called 'photography'.
+=head2 Output
+
+The output will be written to a directory called 'photography' inside
+the current working directory. You can change this by altering the
+$Photography::Website::website variable.
 
 =cut
 
@@ -101,6 +145,9 @@ sub scale_and_watermark;
 # make you a pretty photography website!
 sub generate {
     $| = 1;
+
+    say "YES! Photography::Website is successfully installed!";
+    return;
 
     # Setup the website directory
     `mkdir -p $website`;

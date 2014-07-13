@@ -1,0 +1,39 @@
+Installation instructions
+=========================
+
+There's more than one way to install this program. By far the easiest is to
+make sure you have Dist::Zilla installed (`apt-get install
+libdist-zilla-perl` or `cpan Dist::Zilla`) and then simply run:
+
+    dzil install
+
+Another way is to first use Dist::Zilla to generate a traditional Perl
+module package, which can then be installed like any other Perl module. I
+recommend cpanminus to install the dependencies (`apt-get install cpanminus`
+or `cpan App::cpanminus`). Use the following commands to install:
+
+    dzil build
+    cd photography-website-0.001/
+    cpanm --installdeps .
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+A third option is to use the `cpan` tool to install the module package:
+
+    dzil build
+    cd photography-website-0.001/
+    cpan .
+
+In all cases, make sure you are running the installation commands as root,
+or have local::lib installed and properly configured. Here's how to install
+local::lib on a Debian system:
+
+    apt-get install liblocal-lib-perl
+    perl -Mlocal::lib >> ~/.bashrc
+    . ~/.bashrc
+
+After installation, a command named `photog` should be present in your PATH.
+To generate a photography website using default settings, simply type
+`photog` and enjoy!
