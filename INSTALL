@@ -1,39 +1,31 @@
 Installation instructions
 =========================
 
-There's more than one way to install this program. By far the easiest is to
-make sure you have Dist::Zilla installed (`apt-get install
-libdist-zilla-perl` or `cpan Dist::Zilla`) and then simply run:
+To install this program you need Dist::Zilla, which can be installed
+by running the following command as root:
+
+   cpan Dist::Zilla
+
+After that, make sure you're in the directory where this INSTALL file
+is, and run the following command as root:
 
     dzil install
 
-Another way is to first use Dist::Zilla to generate a traditional Perl
-module package, which can then be installed like any other Perl module. I
-recommend cpanminus to install the dependencies (`apt-get install cpanminus`
-or `cpan App::cpanminus`). Use the following commands to install:
+In case you ran these commands as a regular user instead of root, the
+`cpan` and `dzil` tools have tried to install the required modules
+locally to the ~/perl5 directory.  Unfortunately, this will break
+things since the Perl installation does not know by default where
+these modules are. To fix this, run (as a regular user):
 
-    dzil build
-    cd photography-website-0.001/
-    cpanm --installdeps .
-    perl Makefile.PL
-    make
-    make test
-    make install
+   perl -I ~/perl5/lib/perl5 -Mlocal::lib >> ~/.bashrc
+   . ~/.bashrc
+   cpan Dist::Zilla
+   dzil install
 
-A third option is to use the `cpan` tool to install the module package:
+After installation, a manpage is available with the following command:
 
-    dzil build
-    cd photography-website-0.001/
-    cpan .
+    man Photography::Website
 
-In all cases, make sure you are running the installation commands as root,
-or have local::lib installed and properly configured. Here's how to install
-local::lib on a Debian system:
-
-    apt-get install liblocal-lib-perl
-    perl -Mlocal::lib >> ~/.bashrc
-    . ~/.bashrc
-
-After installation, a command named `photog` should be present in your PATH.
-To generate a photography website using default settings, simply type
+Also, the command named `photog` should be present in your PATH. To
+generate a photography website using default settings, simply type
 `photog` and enjoy!
