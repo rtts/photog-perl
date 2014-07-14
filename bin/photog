@@ -2,9 +2,210 @@
 use warnings;
 use strict;
 use Photography::Website;
+use Config::General;
+use Cwd;
+use Template; my $tt = Template->new({ABSOLUTE => 1});
+use File::ShareDir 'dist_dir';
 
-Photography::Website::generate();
+=head1 NAME
 
-use File::ShareDir 'module_dir';
-use feature 'say';
-say "Here are your files, sir: " . module_dir('Photography::Website');
+Photog! - The Photography Website Generator
+
+=head1 SYNOPSIS
+
+    photog
+
+=head1 DESCRIPTION
+
+Photog! generates a unique, hierarchical, and chronologically sorted
+photography website, with thumbnails and watermarked images, based on
+the user's Pictures folder.
+
+=head1 USAGE
+
+Using Photog! is very easy. Simply type C<photog> at the command
+prompt and it generates a complete photography website. If a
+previously generated website already exists, Photog! will update it
+with the latest changes you've made to your Pictures library.
+
+You can view the resulting website locally by opening the website's
+index.html in your favorite browser, or you can upload it to your web
+server and serve it from there. (Note: if you view the website
+locally not all functionality will work correctly due to the
+limitations webbrowsers impose on local files. For beste results,
+serve the website from a webserver, which can be as simple as C<python
+-m SimpleHTTPServer>.)
+
+=head1 CUSTOMIZATION
+
+You probably want to make some customizations to the generated website
+before serving it the wider public. Alongside the website's
+C<index.html> file, you will find a file named C<index.template>. This
+is the file Photog! uses to generate all your website's pages. Simply
+edit this file to add your own logo, links to other pages, etc. and
+then re-run Photog! to regenerate your website.
+
+Photog! makes this easy by writing
+the website's template - named C<index.html> - to the output directory
+alongside the generated HTML files. When you edit this file and run
+Photog! again, it will use this template.
+
+=head1 CONFIGURATION
+
+When you execute C<photog> for the first time, it will ask you a
+couple of configuration questions. Your answers are saved to the
+run-control file C<".photogrc" in your home directory. This file
+contains a number of "Variable = value" directives. Lines starting
+with a C<#> are ignored. This section explains the available
+configuration parameters.
+
+=head2 Artist
+
+
+
+=head2 Preconditions
+
+The following preconditions apply:
+
+=over 2
+
+=item *
+
+The ~/Pictures folder contains .jpg files with valid EXIF
+information (specifically, the tag DateTimeOriginal, which is used to
+render galleries in chronological order). If there are raw files
+available with the same basename as a JPEG file (*.dng, *.nef, *.cr2,
+or *.crw) their EXIF data will be copied over to the JPEG file if
+needed. This helps when image editors have removed or corrupted EXIF
+data.
+
+=item *
+
+The subfolders start with a date (YYYY-MM-DD) for sorting
+purposes, followed by a name that will be used as the URL. If the name
+contains the string "(hidden)", the gallery will be unlisted in the
+parent gallery. If the name contains the string "(private)", the
+gallery will only be available through a secret URL. In these cases
+the use of a date is not necessary, since these galleries will never
+be listed.
+
+=back
+
+=head2 User input
+
+The script prompts the user for input in the following situations:
+
+=over 2
+
+=item *
+
+When generating a gallery thumbnail, it will ask how many thumbnails
+it should contain. Currently the choices are 3, 6, or 9. Once created,
+gallery thumbnails will never be overwritten.
+
+=item *
+
+When the script generates scaled web images, and it encounters an
+image with no "Artist" and "Copyright" tags, it will ask the user to
+choose between the available artists in the @artists array. Then it
+will update the EXIF data of the original image.
+
+=back
+
+=head2 Output
+
+The output will be written to a directory called 'photography' inside
+the current working directory. You can change this by altering the
+$Photography::Website::website variable.
+
+=cut
+
+sub ask;
+sub confirm;
+sub username;
+
+unless (-f "$ENV{HOME}/.photogrc") {
+    my $config = {};
+    my $config_template = (dist_dir 'photography-website') . "/templates/photogrc";
+
+    print << 'EOM';
+
+This seems to be the first time you run photog! Photog will generate a
+unique, chronologically sorted photography website based on your
+Pictures folder. For more information please read the manual page by
+typing "man photog".
+
+Before photog can create your Photography Website, you need to answer
+a few questions. Your answers will be saved to the file ".photogrc" in
+your home directory. You can always edit this file later to change
+your answers, or delete it and photog will ask you these questions
+again the next time you run it.
+
+Please type your answer after each question and press Enter, or accept
+the [default answer] by pressing Enter.
+
+EOM
+
+    $config->{artist} = ask 'What is your full name?', username;
+    if (confirm 'Do you want to store your name and copyright information in the EXIF data of your images?') {
+        $config->{manipulate_exif} = 'true';
+        $config->{copyright} = ask 'What copyright information do you want to include?', 'All Rights Reserved';
+    }
+    else {
+        $config->{manipulate_exif} = 'false';
+    }
+    $config->{pictures} = ask 'Where are your pictures stored?', "$ENV{HOME}/Pictures";
+    if (confirm 'Do you want to add a watermark to you web images? (the originals will remain untouched)') {
+        $config->{watermark} = ask 'Where is your watermark file stored?', $config->{pictures} . "/watermark.png";
+    }
+    $config->{website} = ask "Where do you want photog to output your photography website?", cwd . "/photography";
+
+    $tt->process($config_template, $config, "$ENV{HOME}/.photogrc") or die $!;
+
+    print << 'EOM';
+Thank you! Your answers have been saved to ~/.photogrc. Feel free to
+edit this file by hand to change the settings.
+
+EOM
+}
+
+else {
+    my $conf = Config::General->new("$ENV{HOME}/.photogrc");
+    my %config = $conf->getall or die "Error in confuration file ~/photogrc\n";
+    for ('Artist', 'Manipulate_EXIF', 'Pictures', 'Website') {
+        unless (defined $config{$_}) {
+            die "The mandatory variable \"$_\" is not present in the configuration file ~/.photogrc. Please add it manually or delete the file so photog can regenerate it.";
+        }
+    }
+    Photography::Website::generate(\%config);
+}
+
+sub ask {
+    my $question = shift;
+    my $default_answer = shift;
+    print "$question [$default_answer] ";
+    my $answer = <>;
+    chomp $answer;
+    print "\n";
+    if ($answer) {
+        return $answer;
+    }
+    else {
+        return $default_answer;
+    }
+}
+
+sub confirm {
+    my $prompt = shift;
+    my $answer = "";
+    until ($answer =~ /^[yn]$/) {
+        $answer = ask $prompt, 'y/n';
+    }
+    return $answer eq 'y';
+}
+
+sub username {
+    my $name = (getpwnam getlogin)[6];
+    $name =~ s/,.*$//;
+    return $name;
+}

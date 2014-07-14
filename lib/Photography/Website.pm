@@ -37,96 +37,8 @@ our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
 our $private_regex = '(private)';
 our $hidden_regex  = '(hidden)';
 
-=head1 NAME
-
-Photography Website Generator
-
-=head1 SYNOPSIS
-
-=head2 Using the wrapper command:
-
-    photog
-
-=head2 In Perl code:
-
-    use Photography::Website;
-
-    @Photography::Website::artists = (
-        {
-            artist    => 'Your Name Here',
-            copyright => 'http://creativecommons.org/licenses/by-sa/4.0/'
-        }
-    );
-
-    Photography::Website::generate();
-
-=head1 DESCRIPTION
-
-This script generates a hierarchical, chronologically sorted
-photography website, with thumbnails and watermarked images, based
-on the user's ~/Pictures folder. It depends on Image::Magick for the
-image processing and on Image::ExifTool for manipulating EXIF data.
-
-=head2 Preconditions
-
-The following preconditions apply:
-
-=over 2
-
-=item *
-
-The ~/Pictures folder contains .jpg files with valid EXIF
-information (specifically, the tag DateTimeOriginal, which is used to
-render galleries in chronological order). If there are raw files
-available with the same basename as a JPEG file (*.dng, *.nef, *.cr2,
-or *.crw) their EXIF data will be copied over to the JPEG file if
-needed. This helps when image editors have removed or corrupted EXIF
-data.
-
-=item *
-
-The subfolders start with a date (YYYY-MM-DD) for sorting
-purposes, followed by a name that will be used as the URL. If the name
-contains the string "(hidden)", the gallery will be unlisted in the
-parent gallery. If the name contains the string "(private)", the
-gallery will only be available through a secret URL. In these cases
-the use of a date is not necessary, since these galleries will never
-be listed.
-
-=back
-
-=head2 User input
-
-The script prompts the user for input in the following situations:
-
-=over 2
-
-=item *
-
-When generating a gallery thumbnail, it will ask how many thumbnails
-it should contain. Currently the choices are 3, 6, or 9. Once created,
-gallery thumbnails will never be overwritten.
-
-=item *
-
-When the script generates scaled web images, and it encounters an
-image with no "Artist" and "Copyright" tags, it will ask the user to
-choose between the available artists in the @artists array. Then it
-will update the EXIF data of the original image.
-
-=back
-
-=head2 Output
-
-The output will be written to a directory called 'photography' inside
-the current working directory. You can change this by altering the
-$Photography::Website::website variable.
-
-=cut
-
 sub generate;
 sub process;
-sub regenerate;
 sub create_gallery;
 sub exif;
 sub dirdate;
@@ -141,9 +53,16 @@ sub thumbnail;
 sub scale;
 sub scale_and_watermark;
 
-# This is the main function. Call it without any arguments and it will
-# make you a pretty photography website!
+# This is the main function. Call it with reference to a configuration
+# hash and it will make you a pretty photography website!
 sub generate {
+    # my $config = shift;
+    # $artist = $config->{Website} or die;
+    # $manipulate_exif = $config->{Manipulate_EXIF} or die;
+    # $copyright = $config->{Copyright} or die;
+    # $pictures = $config->{Pictures} or die;
+    # $watermark = $config->{Watermark} or die;
+    # $website = $config->{Website} or die;
     $| = 1;
 
     say "YES! Photography::Website is successfully installed!";
@@ -169,40 +88,33 @@ sub process {
     my $original = shift;
     return if ignore $original;
     if (update_needed $original) {
-        regenerate $original;
-    }
-}
+        thumbnail $original;
 
-# Given the path to an original image or directory, regenerates the
-# corresponding thumbnail and web image or gallery
-sub regenerate {
-    my $original = shift;
-    thumbnail $original;
-
-    if (-f $original) {
-        if ((parent $original) =~ /$private_regex/) {
-            scale $original;
+        if (-f $original) {
+            if ((parent $original) =~ /$private_regex/) {
+                scale $original;
+            }
+            else {
+                scale_and_watermark $original;
+            }
         }
-        else {
-            scale_and_watermark $original;
-        }
-    }
     
-    elsif (-d $original) {
-        use Data::Dumper;
-        say Dumper(create_gallery $original);
-        say "\n\n\n\n\n\n=========================================================================================\n\n\n\n\\n";
-        return;
-
-        my $webdir = $website . path $original;
-        my $index = $webdir . 'index.html';
-        `mkdir -p $webdir`;
-
-        # Write the index.html
-        $tt->process(
+        elsif (-d $original) {
+            use Data::Dumper;
+            say Dumper(create_gallery $original);
+            say "\n\n\n\n\n\n=========================================================================================\n\n\n\n\\n";
+            return;
+            
+            my $webdir = $website . path $original;
+            my $index = $webdir . 'index.html';
+            `mkdir -p $webdir`;
+            
+            # Write the index.html
+            $tt->process(
             $template_file,
             { items => (create_gallery $original) },
             $index);
+        }
     }
 }
 
@@ -224,7 +136,7 @@ sub create_gallery {
             $gallery_item->{type}     = 'image';
             $gallery_item->{date}     = $exifdata->{date};
             $gallery_item->{settings} = $exifdata->{settings};
-            $gallery_item->{img_url}  = (path $dir) . "thumbnails/$_";
+            $gallery_item->{url}  = (path $dir) . "thumbnails/$_";
         }
         elsif (-d) {
             next if (/$private_regex/ or /$hidden_regex/);
@@ -232,14 +144,14 @@ sub create_gallery {
             # Store gallery-specific info
             $gallery_item->{type}    = 'gallery';
             $gallery_item->{date}    = dirdate $_;
-            $gallery_item->{img_url} = (path $dir) . "thumbnails/all.jpg";
+            $gallery_item->{url} = (path $dir) . "thumbnails/all.jpg";
         }
         my ($width, $height) = imgsize $website . $gallery_item->{img};
         
         # Store remaining info
         $gallery_item->{width}  = $width;
         $gallery_item->{height} = $height;
-        $gallery_item->{target} = (path "$dir/$_");
+        $gallery_item->{href} = (path "$dir/$_");
         $gallery_item->{title}  = (title $_);
 
         push @gallery, $gallery_item;

@@ -1,0 +1,30 @@
+# This is the configuration file for "photog". Feel free to edit these
+# values by hand. The comments explain what each variable is used
+# for. Type "man photog" for more information about the photog website
+# generator.
+
+# Artist: The name of the photographer. Will be used in the website's
+# title, and will be added to the EXIF info if Manipulate_EXIF is true.
+# If you use multiple "Artist =" directives, photog will ask you for each
+# untagged picture who the photographer is.
+Artist = [% artist %]
+[% IF copyright %]
+# Copyright: Will be added to the EXIF info if Manipulate_EXIF is true
+Copyright = [% copyright %]
+[% END %]
+# Manipulate_EXIF: If set to true, photog will add the Artist and
+# Copyright tags to the EXIF information of the original image
+# files. As an added bonus, it will also check if a corresponding raw
+# file exists and copy over the MakerNote tag, since many image
+# processing software (*caugh* Lightroom) will remove this tag upon
+# exporting.
+Manipulate_EXIF = [% manipulate_exif %]
+
+# Pictures: The location of your Pictures folder.
+Pictures = [% pictures %]
+[% IF watermark %]
+# Watermark (optional): The location of your watermark file.
+Watermark = [% watermark %]
+[% END %]
+# Website: The location of the generated photography website.
+Website = [% website %]

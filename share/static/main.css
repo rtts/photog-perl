@@ -1,0 +1,156 @@
+/*
+I've disabled this because it halts the page loading
+@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400);
+*/
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  font-style: normal;
+  font-weight: 200;
+  src: url('/SourceSansPro-ExtraLight.woff') format('woff');
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: black;
+    color: white;
+    font-family: sans-serif;
+}
+
+a, a:visited {
+    color: #aaf;
+}
+
+body {
+    overflow-y: scroll;
+}
+
+#gallery {
+    line-height: 0;
+    padding-left: 16px;
+    margin-top: 67px;
+}
+
+#content {
+    clear: both;
+    color: #ccc;
+    font-family: Source Sans Pro;
+    font-weight: 200;
+    font-size: 20px;
+    margin-top: 10%;
+    padding: 0 15%;
+    letter-spacing: 0.15em;
+}
+
+#content img {
+    float:left;
+    margin-top: 10px;
+    margin-right: 50px;
+    margin-bottom: 25px;
+}
+
+h1, h2, h3 {
+    font-weight: 200;
+}
+
+
+#gallery img {
+    margin-bottom: 4px;
+    margin-left: 4px;
+    display: block;
+    float: left;
+}
+
+#header {
+    position: fixed;
+    background: black;
+    background: rgba(0,0,0,.75);
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 51;
+    padding-top: 10px;
+    font-weight: 200;
+    font-size: 20px;
+    font-family: Source Sans Pro;
+    letter-spacing: 0.15em;
+}
+
+#logo {
+    float: left;
+    margin-right:10px;
+    margin-left: 9px;
+}
+
+a.email, a.email:visited {
+    color: #999;
+    text-decoration: none;
+    float: right;
+    margin-top: 20px;
+    margin-right: 23px;
+}
+
+a.menuitem, a.menuitem:visited {
+    color: #999;
+    text-decoration: none;
+    margin-top: 20px;
+    margin-right: 15px;
+    float: left;
+}
+
+.settings {
+    font-size: .75em;
+}
+
+.mfp-with-zoom .mfp-container,
+.mfp-with-zoom.mfp-bg {
+  opacity: 0;
+  -webkit-backface-visibility: hidden;
+  /* ideally, transition speed should match zoom duration */
+  -webkit-transition: all 0.3s ease-out; 
+  -moz-transition: all 0.3s ease-out; 
+  -o-transition: all 0.3s ease-out; 
+  transition: all 0.3s ease-out;
+}
+
+.mfp-with-zoom.mfp-ready .mfp-container {
+    opacity: 1;
+}
+.mfp-with-zoom.mfp-ready.mfp-bg {
+    opacity: 0.8;
+}
+
+.mfp-with-zoom.mfp-removing .mfp-container, 
+.mfp-with-zoom.mfp-removing.mfp-bg {
+  opacity: 0;
+}
+
+.awesome, .awesome:visited {
+    display: inline-block; 
+    color: #fff; 
+    text-decoration: none;
+    border-radius: 5px; 
+    -moz-border-radius: 5px; 
+    -webkit-border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(0,0,0,0.25);
+    position: relative;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 8px 14px 9px;
+    background-color: #ff5c00;
+}
+
+.awesome:hover {
+    background-color: #d45500;
+    color: #fff;
+}
+
+.awesome:active {
+    top: 1px;
+}
