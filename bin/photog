@@ -13,110 +13,133 @@ Photog! - The Photography Website Generator
 
 =head1 SYNOPSIS
 
-    photog
+B<photog> [I<OPTIONS>]
 
 =head1 DESCRIPTION
 
 Photog! generates a unique, hierarchical, and chronologically sorted
-photography website, with thumbnails and watermarked images, based on
-the user's Pictures folder.
+photography website, complete with thumbnails and watermarked images,
+based on the $HOME/Pictures folder.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-v>
+
+Be more verbose
+
+=item B<-q>
+
+Be less verbose
+
+=back
 
 =head1 USAGE
 
-Using Photog! is very easy. Simply type C<photog> at the command
-prompt and it generates a complete photography website. If a
-previously generated website already exists, Photog! will update it
-with the latest changes you've made to your Pictures library.
+The command B<photog> generates a complete photography website and
+stores it in the location set by the configuration file
+B<.photogrc>. See the CONFIGURATION section below for more about the
+configuration details. If a previously generated website already
+exists, Photog! will update it with the latest changes.
 
-You can view the resulting website locally by opening the website's
-index.html in your favorite browser, or you can upload it to your web
-server and serve it from there. (Note: if you view the website
-locally not all functionality will work correctly due to the
-limitations webbrowsers impose on local files. For beste results,
-serve the website from a webserver, which can be as simple as C<python
--m SimpleHTTPServer>.)
+The website will show thumbnails of all JPEG files in the Pictures
+folder sorted by EXIF date. Clicking on a thumbnail will give access
+to a bigger, optionally watermarked image. The original images will
+remain untouched (except when the configuration parameter
+Manipulate_EXIF is set to true, see CONFIGURATION below).
 
-=head1 CUSTOMIZATION
+Photog! will recurse into all subdirectories of the Pictures folder
+and create corresponding subgalleries. The thumbnail of a subgallery
+shows 3, 6 or 9 randomly selected images from that directory. The
+exact number can be chosen when the gallery thumbnail is generated.
+Once created, gallery thumbnails will not be overwritten, so just
+delete the thumbnail file manually to regenerate it. To guide the sort
+order of subdirectories, prepend the directory name with a date in
+the format YYYY-MM-DD. Otherwise, Photog! will use a directory's
+creation time for determining sort order.
 
-You probably want to make some customizations to the generated website
-before serving it the wider public. Alongside the website's
-C<index.html> file, you will find a file named C<index.template>. This
-is the file Photog! uses to generate all your website's pages. Simply
-edit this file to add your own logo, links to other pages, etc. and
-then re-run Photog! to regenerate your website.
+If a directory beneath the Pictures folder contains the string
+I<(hidden)>, the corresponding web gallery will not be listed in the
+parent gallery. This feature allows the home page to remain
+clutter-free while still having access to specific galleries by their
+URL. If a directory contains the string I<(private)>, it will
+not be available under it's regular name but by a generated URL
+consisting of 32 alphanumeric characters. Use this feature to give
+clients private access to their album without publishing it for
+everyone to see.
 
-Photog! makes this easy by writing
-the website's template - named C<index.html> - to the output directory
-alongside the generated HTML files. When you edit this file and run
-Photog! again, it will use this template.
+View the resulting website by opening the website's index.html in a
+web browser or serve the files from a web server. Note: when viewing
+the website locally, not all functionality will work correctly due to
+the limitations webbrowsers impose on local files. For best results,
+serve the website from a webserver, which can be as simple as running
+C<python -m SimpleHTTPServer> inside the website's directory.
+
+To customize the generated website, edit the template file
+B<index.template> that Photog! places inside the Pictures folder upon
+the first run. Edit this file to add a custom logo, links to other
+pages, etc. and then re-run Photog! to regenerate all website pages.
 
 =head1 CONFIGURATION
 
-When you execute C<photog> for the first time, it will ask you a
-couple of configuration questions. Your answers are saved to the
-run-control file C<".photogrc" in your home directory. This file
-contains a number of "Variable = value" directives. Lines starting
-with a C<#> are ignored. This section explains the available
-configuration parameters.
+The Photog! configuration lives in B<~/.photogrc>. When executing
+B<photog> for the first time, it will ask a couple of questions
+and write the answers to the configuration file. This file
+contains a number of "variable = value" directives. Lines starting
+with a C<#> are ignored. These are the available configuration
+variables:
 
 =head2 Artist
 
+The name of the photographer. Will be used in the website's title, and
+will be added to the EXIF info if Manipulate_EXIF is true. Multiple
+"Artist =" directives are allowed, Photog! will ask for each untagged
+picture who the photographer is.
 
+=head2 Copyright
 
-=head2 Preconditions
+Copyright information. Will be added to the EXIF info if
+Manipulate_EXIF is true. Otherwise unused.
 
-The following preconditions apply:
+=head2 Manipulate_EXIF
 
-=over 2
+If set to true, Photog! will add the Artist and Copyright tags to the
+EXIF information of the I<original> image files. As an added bonus, it
+will also check if a corresponding raw file (*.dng, *.nef, *.cr2, or
+*.crw) exists and copy over the MakerNote tag, since many image
+processing software (*caugh* Lightroom) will remove this tag upon
+exporting.
 
-=item *
+=head2 Pictures
 
-The ~/Pictures folder contains .jpg files with valid EXIF
-information (specifically, the tag DateTimeOriginal, which is used to
-render galleries in chronological order). If there are raw files
-available with the same basename as a JPEG file (*.dng, *.nef, *.cr2,
-or *.crw) their EXIF data will be copied over to the JPEG file if
-needed. This helps when image editors have removed or corrupted EXIF
-data.
+The location of your Pictures folder.
 
-=item *
+=head2 Watermark
 
-The subfolders start with a date (YYYY-MM-DD) for sorting
-purposes, followed by a name that will be used as the URL. If the name
-contains the string "(hidden)", the gallery will be unlisted in the
-parent gallery. If the name contains the string "(private)", the
-gallery will only be available through a secret URL. In these cases
-the use of a date is not necessary, since these galleries will never
-be listed.
+The location of your watermark file, which is preferably a transparent PNG graphic. If unset, web images will not be watermarked.
 
-=back
+=head2 Website
 
-=head2 User input
+The location of the generated photography website.
 
-The script prompts the user for input in the following situations:
+=head1 FILES
 
-=over 2
+=head2 ~/.photogrc
 
-=item *
+The configuration file. See the section CONFIGURATION for the
+available configuration parameters.
 
-When generating a gallery thumbnail, it will ask how many thumbnails
-it should contain. Currently the choices are 3, 6, or 9. Once created,
-gallery thumbnails will never be overwritten.
+=head1 SEE ALSO
 
-=item *
+L<Photography::Website(3pm)|Photography::Website>, the Perl module
+distributed with Photog! which takes care of the actual site
+generation.
 
-When the script generates scaled web images, and it encounters an
-image with no "Artist" and "Copyright" tags, it will ask the user to
-choose between the available artists in the @artists array. Then it
-will update the EXIF data of the original image.
+=head1 AUTHOR
 
-=back
-
-=head2 Output
-
-The output will be written to a directory called 'photography' inside
-the current working directory. You can change this by altering the
-$Photography::Website::website variable.
+Photog! was written by Jaap Joris Vens <jj@returntothesource.nl>, and
+is used on his personal photography website http://www.superformosa.nl/
 
 =cut
 
@@ -130,16 +153,9 @@ unless (-f "$ENV{HOME}/.photogrc") {
 
     print << 'EOM';
 
-This seems to be the first time you run photog! Photog will generate a
-unique, chronologically sorted photography website based on your
-Pictures folder. For more information please read the manual page by
-typing "man photog".
-
-Before photog can create your Photography Website, you need to answer
-a few questions. Your answers will be saved to the file ".photogrc" in
-your home directory. You can always edit this file later to change
-your answers, or delete it and photog will ask you these questions
-again the next time you run it.
+This seems to be the first time you run Photog! To generate your
+photography website, please answer the following questions. For more
+information read the manual page by typing "man photog".
 
 Please type your answer after each question and press Enter, or accept
 the [default answer] by pressing Enter.
@@ -147,24 +163,21 @@ the [default answer] by pressing Enter.
 EOM
 
     $config->{artist} = ask 'What is your full name?', username;
-    if (confirm 'Do you want to store your name and copyright information in the EXIF data of your images?') {
+    $config->{copyright} = ask 'What copyright applies to your images?', 'All Rights Reserved';
+    if (confirm 'Do you want to store this information in the EXIF data of your images?') {
         $config->{manipulate_exif} = 'true';
-        $config->{copyright} = ask 'What copyright information do you want to include?', 'All Rights Reserved';
     }
     else {
         $config->{manipulate_exif} = 'false';
     }
     $config->{pictures} = ask 'Where are your pictures stored?', "$ENV{HOME}/Pictures";
-    if (confirm 'Do you want to add a watermark to you web images? (the originals will remain untouched)') {
-        $config->{watermark} = ask 'Where is your watermark file stored?', $config->{pictures} . "/watermark.png";
-    }
-    $config->{website} = ask "Where do you want photog to output your photography website?", cwd . "/photography";
+    $config->{website} = ask "Where should the website be stored?", cwd . "/photography";
 
     $tt->process($config_template, $config, "$ENV{HOME}/.photogrc") or die $!;
 
     print << 'EOM';
 Thank you! Your answers have been saved to ~/.photogrc. Feel free to
-edit this file by hand to change the settings.
+edit this file to change the settings.
 
 EOM
 }

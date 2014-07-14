@@ -6,36 +6,69 @@ use constant true  => 1;
 use feature qw(say);
 use File::Find;
 use File::Basename;
+use File::ShareDir qw(dist_dir);
 use Image::Size;
 use Cwd;
 use Digest::MD5 qw(md5_hex);
 use Image::ExifTool qw(:Public);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
-our @artists = (
-    {
-        artist => 'Jaap Joris Vens - www.superformosa.nl',
-        copyright => 'http://creativecommons.org/licenses/by-sa/4.0/'
-    },
-    {
-        artist => 'Jolanda Verhoef - www.superformosa.nl',
-        copyright => 'http://creativecommons.org/licenses/by-sa/4.0/'
-    }
-);
+our @artists;
+our $copyright;
+our $manipulate_exif;
+our $pictures;
+our $website;
+our $watermark;
+our @ignore;
+our $thumbnail_size;
+our $image_size;
+our $static_dir     = (dist_dir 'photography-website') . '/static';
+our $date_regex     = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
+our $private_regex  = '(private)';
+our $hidden_regex   = '(hidden)';
 
-our @ignore        = ('Lightroom Backups');
-our $pictures      = "$ENV{'HOME'}/Pictures";
-our $watermark     = "$pictures/watermark.png";
-our $website       = cwd . "/photography";
+=head1 NAME
 
-my $script_dir = "AAAARGH HOW CAN I EEVVER";
+Photography::Website
 
-our $template_file = "$script_dir/index.template";
-our $static        = "$script_dir/static";
+=head1 SYNOPSIS
 
-our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
-our $private_regex = '(private)';
-our $hidden_regex  = '(hidden)';
+    use Photography::Website;
+
+    my $conf = {
+
+        # mandatory arguments
+        Artist          => [ "Your Name", "Your Assistant's Name" ],
+        Copyright       => "All Rights Reserved",
+        Manipulate_EXIF => "true",
+        Pictures        => "/home/username/Pictures",
+        Website         => "/home/username/public_html",
+
+        # optional arguments
+        Watermark       => "/home/username/Pictures/watermark.png",
+        Ignore          => [ "Lightroom Backups" ],
+        Image_Size      => 2160
+    };
+
+    Photography::Website::generate($conf);
+
+=head1 DESCRIPTION
+
+This Perl module generates a new or updates an existing photography
+website. Please refer to the manual page of L<photog(3pm)|photog> for
+documentation about the B<photog> command that provides a
+user-friendly interface to use this module.
+
+=head1 SEE ALSO
+
+L<photog(3pm)|photog>
+
+=head1 AUTHOR
+
+Photography::Website was written by Jaap Joris Vens <jj@returntothesource.nl>, and
+is used on his personal photography website http://www.superformosa.nl/
+
+=cut
 
 sub generate;
 sub process;
@@ -56,22 +89,38 @@ sub scale_and_watermark;
 # This is the main function. Call it with reference to a configuration
 # hash and it will make you a pretty photography website!
 sub generate {
-    # my $config = shift;
-    # $artist = $config->{Website} or die;
-    # $manipulate_exif = $config->{Manipulate_EXIF} or die;
-    # $copyright = $config->{Copyright} or die;
-    # $pictures = $config->{Pictures} or die;
-    # $watermark = $config->{Watermark} or die;
-    # $website = $config->{Website} or die;
-    $| = 1;
+    my $config = shift or die;
 
-    say "YES! Photography::Website is successfully installed!";
+    # Die if the following arguments aren't present
+    if (ref $config->{Artist} eq ref []) {
+        @artists = @{$config->{Artist}} or die;
+    }
+    else {
+        $artists[0] = $config->{Artist} or die;
+    }
+    $copyright = $config->{Copyright} or die;
+    $manipulate_exif = $config->{Manipulate_EXIF} or die;
+    $manipulate_exif = $manipulate_exif =~ /true/i;
+    $pictures = $config->{Pictures} or die;
+    $website = $config->{Website} or die;
+
+    # These arguments are optional
+    $watermark = $config->{Watermark};
+    if (ref $config->{Artist} eq ref []) {
+        @ignore = @{$config->{Ignore}};
+    }
+    else {
+        $ignore[0] = $config->{Ignore};
+    }
+    $thumbnail_size = $config->{Thumbnail_Size} || 366; # undocumented
+    $image_size = $config->{Image_Size} || 2160;
+
     return;
 
     # Setup the website directory
-    `mkdir -p $website`;
-    `cp -r $static $website`;
-    `cp about.html contact.html $website`;
+    #`mkdir -p $website`;
+    #`cp -r $static $website`;
+    #`cp about.html contact.html $website`;
 
     # Call &process for each item below pictures tree
     finddepth { wanted => sub { process $_ },
@@ -111,7 +160,7 @@ sub process {
             
             # Write the index.html
             $tt->process(
-            $template_file,
+            "$pictures/index.template",
             { items => (create_gallery $original) },
             $index);
         }

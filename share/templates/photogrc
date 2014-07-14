@@ -1,17 +1,16 @@
-# This is the configuration file for "photog". Feel free to edit these
+# This is the configuration file for Photog!. Feel free to edit these
 # values by hand. The comments explain what each variable is used
-# for. Type "man photog" for more information about the photog website
-# generator.
+# for. Type "man photog" for more information about Photog!
 
 # Artist: The name of the photographer. Will be used in the website's
-# title, and will be added to the EXIF info if Manipulate_EXIF is true.
-# If you use multiple "Artist =" directives, photog will ask you for each
-# untagged picture who the photographer is.
+# title, and will be added to the EXIF info if Manipulate_EXIF is
+# true.  If you use multiple "Artist =" directives, Photog! will ask
+# you for each untagged picture who the photographer is.
 Artist = [% artist %]
-[% IF copyright %]
+
 # Copyright: Will be added to the EXIF info if Manipulate_EXIF is true
 Copyright = [% copyright %]
-[% END %]
+
 # Manipulate_EXIF: If set to true, photog will add the Artist and
 # Copyright tags to the EXIF information of the original image
 # files. As an added bonus, it will also check if a corresponding raw
@@ -22,9 +21,19 @@ Manipulate_EXIF = [% manipulate_exif %]
 
 # Pictures: The location of your Pictures folder.
 Pictures = [% pictures %]
-[% IF watermark %]
-# Watermark (optional): The location of your watermark file.
-Watermark = [% watermark %]
-[% END %]
+
 # Website: The location of the generated photography website.
 Website = [% website %]
+
+# Watermark: The location of your watermark file, which is preferably
+# a transparent PNG graphic. If unset, web images will not be watermarked.
+Watermark = [% watermark %]
+
+# Ignore: Sets the name of a file or folder that should be ignored
+# when generating the website. You can use multiple "Ignore ="
+# directives.
+Ignore = 
+
+# Image_Size: The height of the bounding box that all web images will
+# be resized to.
+Image_Size = 2160;
