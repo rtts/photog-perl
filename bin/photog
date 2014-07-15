@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
+use utf8;
+use feature 'say';
 use Photography::Website;
 use Config::General;
 use Cwd;
@@ -143,9 +145,25 @@ is used on his personal photography website http://www.superformosa.nl/
 
 =cut
 
+my $verbose;
+my $silent;
+
 sub ask;
 sub confirm;
 sub username;
+
+# Read command line args
+for (@ARGV) {
+    $verbose = 1 if $_ eq '-v';
+    $silent = 1 if $_ eq '-q';
+}
+
+binmode STDOUT, ":utf8";
+print << 'EOM' unless $silent;
+             ┌────────────────────┐
+─────────────┤ Welcome to Photog! ├──────────────
+             └────────────────────┘
+EOM
 
 unless (-f "$ENV{HOME}/.photogrc") {
     my $config = {};
@@ -180,18 +198,29 @@ Thank you! Your answers have been saved to ~/.photogrc. Feel free to
 edit this file to change the settings.
 
 EOM
+    unless (confirm "Do you want to start generating your photography website?") {
+        print "\nYou can start website generation at any time by running `photog`";
+        exit 1;
+    }
 }
 
-else {
-    my $conf = Config::General->new("$ENV{HOME}/.photogrc");
-    my %config = $conf->getall or die "Error in confuration file ~/photogrc\n";
-    for ('Artist', 'Manipulate_EXIF', 'Pictures', 'Website') {
-        unless (defined $config{$_}) {
-            die "The mandatory variable \"$_\" is not present in the configuration file ~/.photogrc. Please add it manually or delete the file so photog can regenerate it.";
-        }
+# Read config file
+my $conf = Config::General->new("$ENV{HOME}/.photogrc");
+my %config = $conf->getall or die "Error in confuration file ~/photogrc\n";
+$config{Verbose} = $verbose;
+$config{Silent} = $silent;
+say "Found configuration file $ENV{HOME}/.photogrc" if $verbose;
+
+# Check mandatory variables
+for ('Artist', 'Copyright', 'Manipulate_EXIF', 'Pictures', 'Website') {
+    unless (defined $config{$_}) {
+        die "The mandatory variable \"$_\" is not present in the configuration file ~/.photogrc. Please add it manually or delete the file so photog can regenerate it.";
     }
-    Photography::Website::generate(\%config);
 }
+say "Configuration file is valid" if $verbose;
+say "Calling Photography::Website::generate()" if $verbose;
+Photography::Website::generate(\%config);
+say "─────────────────────────────────────────────────" unless $silent;
 
 sub ask {
     my $question = shift;

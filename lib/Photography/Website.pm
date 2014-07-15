@@ -22,10 +22,12 @@ our $watermark;
 our @ignore;
 our $thumbnail_size;
 our $image_size;
-our $static_dir     = (dist_dir 'photography-website') . '/static';
-our $date_regex     = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
-our $private_regex  = '(private)';
-our $hidden_regex   = '(hidden)';
+our $verbose;
+our $silent;
+our $share         = dist_dir 'photography-website';
+our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
+our $private_regex = '(private)';
+our $hidden_regex  = '(hidden)';
 
 =head1 NAME
 
@@ -47,7 +49,9 @@ Photography::Website
         # optional arguments
         Watermark       => "/home/username/Pictures/watermark.png",
         Ignore          => [ "Lightroom Backups" ],
-        Image_Size      => 2160
+        Image_Size      => 2160,
+        Verbose         => 1,
+        Silent          => 0
     };
 
     Photography::Website::generate($conf);
@@ -82,6 +86,7 @@ sub ignore;
 sub title;
 sub name;
 sub parent;
+sub dirlist;
 sub thumbnail;
 sub scale;
 sub scale_and_watermark;
@@ -106,7 +111,7 @@ sub generate {
 
     # These arguments are optional
     $watermark = $config->{Watermark};
-    if (ref $config->{Artist} eq ref []) {
+    if (ref $config->{Ignore} eq ref []) {
         @ignore = @{$config->{Ignore}};
     }
     else {
@@ -114,32 +119,35 @@ sub generate {
     }
     $thumbnail_size = $config->{Thumbnail_Size} || 366; # undocumented
     $image_size = $config->{Image_Size} || 2160;
-
-    return;
+    $verbose = $config->{Verbose};
+    $silent = $config->{Silent};
 
     # Setup the website directory
-    #`mkdir -p $website`;
-    #`cp -r $static $website`;
-    #`cp about.html contact.html $website`;
+    `mkdir -p $website`;
+    for (dirlist "$share/static") {
+        `cp -n --no-preserve=mode $_ $website`;
+    }
+    `cp -n --no-preserve=mode $share/templates/index.template $website`;
 
     # Call &process for each item below pictures tree
+    say "Scanning $pictures..." unless $silent;
     finddepth { wanted => sub { process $_ },
               no_chdir => 1}, $pictures;
 
-    # Exit successfully
-    exit 0;
+    say "Website complete in $website" unless $silent;
 }
 
 # Entry point for (re)generating individual web resources. Pass a
 # filename or directory and the corresponding resource on the website
 # will be updated if needed.
 sub process {
-    my $original = shift;
+    my $original = shift or die;
     return if ignore $original;
     if (update_needed $original) {
         thumbnail $original;
 
         if (-f $original) {
+            say "Processing image: $_" if $verbose;
             if ((parent $original) =~ /$private_regex/) {
                 scale $original;
             }
@@ -147,22 +155,25 @@ sub process {
                 scale_and_watermark $original;
             }
         }
-    
+
         elsif (-d $original) {
-            use Data::Dumper;
-            say Dumper(create_gallery $original);
-            say "\n\n\n\n\n\n=========================================================================================\n\n\n\n\\n";
-            return;
-            
+            say "Updating gallery for $original" unless $silent;
             my $webdir = $website . path $original;
             my $index = $webdir . 'index.html';
             `mkdir -p $webdir`;
-            
+
+            # Calculate the relative path to the root
+            my $root = path $original;
+            $root =~ s:[^/]+/:\.\./:g;
+            $root =~ s:^/::;
+
             # Write the index.html
-            $tt->process(
-            "$pictures/index.template",
-            { items => (create_gallery $original) },
-            $index);
+            my $context = {
+                    website_title => "$artists[0] Photography",
+                    root => sub { "$root$_[0]" },
+                    items => (create_gallery $original)
+                };
+            $tt->process("$website/index.template", $context, $index) or die;
         }
     }
 }
@@ -170,38 +181,42 @@ sub process {
 # Given an image directory, returns a reference to a list of hashes
 # that represent gallery items, sorted by EXIF date
 sub create_gallery {
-    my $dir = shift;
-    my @files = glob '$dir/*';
+    my $dir = shift or die;
     my @gallery;
 
-    for (@files) {
+    for my $original (dirlist $dir) {
         my $gallery_item = {};
-        next if ignore $_;
+        my $name = name $original;
+        next if ignore $original;
 
-        if (-f) {
-            my $exifdata = exif "$dir/$_";
+        if (-f $original) {
+            my $exifdata = exif $original;
 
             # Store image-specific info
             $gallery_item->{type}     = 'image';
             $gallery_item->{date}     = $exifdata->{date};
             $gallery_item->{settings} = $exifdata->{settings};
-            $gallery_item->{url}  = (path $dir) . "thumbnails/$_";
+            $gallery_item->{src}      = "thumbnails/$name";
+            $gallery_item->{href}     = $name;
         }
-        elsif (-d) {
-            next if (/$private_regex/ or /$hidden_regex/);
-            
+        elsif (-d $original) {
+            next if ($name =~ /$private_regex/);
+            next if ($name =~ /$hidden_regex/);
+
             # Store gallery-specific info
-            $gallery_item->{type}    = 'gallery';
-            $gallery_item->{date}    = dirdate $_;
-            $gallery_item->{url} = (path $dir) . "thumbnails/all.jpg";
+            $gallery_item->{type} = 'gallery';
+            $gallery_item->{date} = dirdate $original;
+            $gallery_item->{src}  = (title $name) . "/thumbnails/all.jpg";
+            $gallery_item->{href} = (title $name) . '/';
         }
-        my ($width, $height) = imgsize $website . $gallery_item->{img};
-        
+
+        my $absolute_src = $website . (path $dir) .  $gallery_item->{src};
+        my ($width, $height) = imgsize $absolute_src;
+
         # Store remaining info
         $gallery_item->{width}  = $width;
         $gallery_item->{height} = $height;
-        $gallery_item->{href} = (path "$dir/$_");
-        $gallery_item->{title}  = (title $_);
+        $gallery_item->{title}  = title $original;
 
         push @gallery, $gallery_item;
     }
@@ -214,7 +229,7 @@ sub create_gallery {
 
 # Returns some EXIF data of an image in a hash reference
 sub exif {
-    my $file = shift;
+    my $file = shift or die;
     my $data = {};
     my $exif = ImageInfo($file, 'MakerNote', 'Artist', 'Copyright', 'DateTimeOriginal', 'ExposureTime', 'FNumber', 'ISO');
     if (not %{$exif}) {
@@ -223,23 +238,26 @@ sub exif {
     
     # If a raw file with the same name exists, copy over the EXIF data
     # to the file
-    my $rawfile = $file;
-    for my $ext ('dng', 'nef', 'cr2', 'crw') {
-        $rawfile =~ s/\.jpg/\.$ext/;
-        if (-f $rawfile) {
-            # copy exif to jpeg
-            last;
+    if ($manipulate_exif) {
+        my $rawfile = $file;
+        for my $ext ('dng', 'nef', 'cr2', 'crw') {
+            $rawfile =~ s/\.jpg/\.$ext/;
+            if (-f $rawfile) {
+                say "Copying EXIF info from $rawfile to $file" if $verbose;
+                # copy exif to jpeg
+                last;
+            }
         }
     }
 
     $data->{date} = $exif->{DateTimeOriginal} or 0;
-    $data->{settings} = "$exif->{ExposureTime}, $exif->{FNumber}, ISO $exif-{ISO}";
+    $data->{settings} = "$exif->{ExposureTime}, $exif->{FNumber}, ISO $exif->{ISO}";
     return $data;
 }
 
 # Extracts the date from a directory name in EXIF format
 sub dirdate {
-    my $dir = shift;
+    my $dir = name shift or die;
     my $date;
     if ($dir =~ /($date_regex)/) {
         $date = $1;
@@ -247,6 +265,7 @@ sub dirdate {
         $date .= " 00:00:00";
     }
     else {
+        say "Directory $dir has no explicit date" if $verbose;
         # todo: Return the last modified date as a fallback
         $date = '0000:00:00 00:00:000';
     }
@@ -255,27 +274,30 @@ sub dirdate {
 
 # Returns true is the corresponding web resource is in need of an update
 sub update_needed {
-    my $original = shift;
+    my $original = shift or die;
     my $original_time;
     my $derivative = $website . path $original;
     my $derivative_time;
+    my $template_time = 0;
 
     if (-f $original) {
         $original_time = (stat $original)[9];
         $derivative_time = (stat $derivative)[9];
     }
     elsif (-d $original) {
-        my $latest = (`ls $original -t1`)[0]; # todo: don't fork
         my $index = $derivative . 'index.html';
+        my $latest = (`ls "$original" -t1`)[0]; # todo: don't fork
+        chomp $latest;
         $original_time = (stat "$original/$latest")[9];
-        $derivative_time = (stat $index);
+        $derivative_time = (stat $index)[9];
+        $template_time = (stat "$website/index.template")[9];
     }
-    
+
     unless ($derivative_time) {
         return true;
     }
     else {
-        return $original_time > $derivative_time;
+        return ($original_time > $derivative_time) || ($template_time > $derivative_time);
     }
 }
 
@@ -283,7 +305,7 @@ sub update_needed {
 # of the corresponding resource (which can be either an image or a
 # gallery URL)
 sub path {
-    my $dir = shift;
+    my $dir = shift or die;
     my $path = '/';
     
     # Loop over all parent dirs until $pictures
@@ -315,24 +337,26 @@ sub is_image {
 }
 
 # Returns true in the following circumstances:
+# - the argument matches an entry from the @ignore list
 # - the argument is a non-image file
 # - the argument is a directory with less than 3 images
-# - the argument is a directory from the @ignore list
 sub ignore {
-    my $candidate = shift;
-    if (-f $candidate){
+    my $candidate = shift or die;
+    if (grep {$candidate =~ /$_/} @ignore) {
+        return true;
+    }
+    if (-f $candidate) {
         return not is_image $candidate;;
     }
     elsif (-d $candidate) {
-        my @listing = `ls -1`; # todo: don't fork
-        return true if scalar @listing <= 3;
-        return grep {$candidate =~ $_} @ignore;
+        my @listing = dirlist $candidate;
+        return scalar @listing <= 3;
     }
 }
 
 # Returns the display name of a file
 sub title {
-    my $file = name shift;
+    my $file = name shift or die;
     $file =~ s/\.[^\.]+$//;
     $file =~ s/$date_regex //;
     return $file;
@@ -340,18 +364,31 @@ sub title {
 
 # Returns only the name of a file
 sub name {
-    my $file = shift;
+    my $file = shift or die;
     return (split m:/:, $file)[-1];
 }
 
 # Returns only the parent directory of a file
 sub parent {
-    my $file = shift;
+    my $file = shift or die;
     return (split m:/:, $file)[-2];
 }
 
+# Return a list of files in the directory
+sub dirlist {
+    my $dir = shift or die;
+    $dir =~ s/\/$//;
+    my @list;
+    opendir my $dh, $dir or die;
+    while (readdir $dh) {
+        next if /^\./;
+        push @list, "$dir/$_";
+    }
+    return @list;
+}
+
 sub thumbnail {
-    my $original = shift;
+    my $original = shift or die;
     if (-d $original) {
         # create gallery thumbnail
     }

@@ -3,25 +3,26 @@
   <head>
     <title>[% website_title %]</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" type="text/css" href="[% static('main.css') %]" />
-    <link rel="stylesheet" href="[% static('magnific-popup.css') %]">
+    <link rel="stylesheet" type="text/css" href="[% root('main.css') %]" />
+    <link rel="stylesheet" href="[% root('magnific-popup.css') %]">
   </head>
   <body>
     <div id="header">
-      <h1><a href="/" id="logo">[% website title %]</a></h1>
+      <h1><a href="[% root('') %]" id="logo">[% website_title %]</a></h1>
     </div>
 
     <div id="gallery">
-    [% FOREACH item in items %]
-    [% IF item.type == image %]
-      <a title="Click image to enlarge" href="[% image.href %]" class="photolink"><img alt="[% image.title %]" data-settings="[% image.settings %]" data-width="[% image.width %]" data-height="[% image.height %]" src="[% image.src %]" /></a>
-    [% ELSIF item.type == gallery %]
-      <a title="Click to visit gallery" href="[% image.href %]"><img alt="[% image.title %]" data-width="[% image.width %]" data-height="[% image.height %]" src="[% image.src %]" /></a>
+    [% FOREACH item IN items %]
+    [% IF item.type == 'image' %]
+      <a title="Click image to enlarge" href="[% item.href %]" class="photolink"><img alt="[% item.title %]" data-settings="[% item.settings %]" data-width="[% item.width %]" data-height="[% item.height %]" src="[% item.src %]" /></a>
+    [% ELSIF item.type == 'gallery' %]
+      <a title="Click to visit gallery" href="[% item.href %]"><img alt="[% item.title %]" data-width="[% item.width %]" data-height="[% item.height %]" src="[% item.src %]" /></a>
+    [% END %]
     [% END %]
     </div>
 
-    <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
-    <script src="[% static('jquery.magnific-popup.js') %]"></script> 
+    <script src="[% root('jquery-1.7.2.min.js') %]"></script>
+    <script src="[% root('jquery.magnific-popup.js') %]"></script> 
     <script>
 
 /* Derived from
@@ -58,7 +59,7 @@ function resize(images, width) {
 }
 
 function run(max_height) {
-  var size = $('#gallery').width() - 25;
+  var size = $('#gallery').width() - 4;
   console.log(size);
 
   var n = 0;
