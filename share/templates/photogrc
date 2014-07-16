@@ -36,4 +36,9 @@ Ignore =
 
 # Image_Size: The height of the bounding box that all web images will
 # be resized to.
-Image_Size = 2160;
+Image_Size = 2160
+
+# Customize_Thumbnails: If true, Photog! will prompt for the number of
+# images to include when creating a gallery thumbnail. When false, it
+# will always be 9.
+Customize_Thumbnails = false

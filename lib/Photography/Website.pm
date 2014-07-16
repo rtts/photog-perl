@@ -22,9 +22,10 @@ our $watermark;
 our @ignore;
 our $thumbnail_size;
 our $image_size;
+our $customize_thumbnails;
 our $verbose;
 our $silent;
-our $share         = dist_dir 'photography-website';
+our $share         = dist_dir 'Photog';
 our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
 our $private_regex = '(private)';
 our $hidden_regex  = '(hidden)';
@@ -47,11 +48,12 @@ Photography::Website
         Website         => "/home/username/public_html",
 
         # optional arguments
-        Watermark       => "/home/username/Pictures/watermark.png",
-        Ignore          => [ "Lightroom Backups" ],
-        Image_Size      => 2160,
-        Verbose         => 1,
-        Silent          => 0
+        Watermark            => "/home/username/Pictures/watermark.png",
+        Ignore               => [ "Lightroom Backups" ],
+        Image_Size           => 2160,
+        Customize_Thumbnails => "false",
+        Verbose              => 1,
+        Silent               => 0
     };
 
     Photography::Website::generate($conf);
@@ -87,6 +89,7 @@ sub title;
 sub name;
 sub parent;
 sub dirlist;
+sub ask;
 sub thumbnail;
 sub scale;
 sub scale_and_watermark;
@@ -119,22 +122,20 @@ sub generate {
     }
     $thumbnail_size = $config->{Thumbnail_Size} || 366; # undocumented
     $image_size = $config->{Image_Size} || 2160;
+    $customize_thumbnails = $config->{Customize_Thumbnails};
+    $customize_thumbnails = $customize_thumbnails =~ /true/i;
     $verbose = $config->{Verbose};
     $silent = $config->{Silent};
 
     # Setup the website directory
-    `mkdir -p $website`;
-    for (dirlist "$share/static") {
-        `cp -n --no-preserve=mode $_ $website`;
-    }
-    `cp -n --no-preserve=mode $share/templates/index.template $website`;
+    system "mkdir -p $website";
+    system "cp -n --no-preserve=mode $_ $website" for dirlist "$share/static";
+    system "cp -n --no-preserve=mode $share/templates/index.template $website";
 
     # Call &process for each item below pictures tree
     say "Scanning $pictures..." unless $silent;
     finddepth { wanted => sub { process $_ },
               no_chdir => 1}, $pictures;
-
-    say "Website complete in $website" unless $silent;
 }
 
 # Entry point for (re)generating individual web resources. Pass a
@@ -143,12 +144,18 @@ sub generate {
 sub process {
     my $original = shift or die;
     return if ignore $original;
-    if (update_needed $original) {
-        thumbnail $original;
+    my $derivative = $website . path $original;
 
+    if (update_needed $original) {
+
+        # If file
         if (-f $original) {
-            say "Processing image: $_" if $verbose;
+            say "$original => $derivative" unless $silent;
+            thumbnail $original;
             if ((parent $original) =~ /$private_regex/) {
+                scale $original;
+            }
+            elsif (not $watermark) {
                 scale $original;
             }
             else {
@@ -156,11 +163,12 @@ sub process {
             }
         }
 
+        # If directory
         elsif (-d $original) {
-            say "Updating gallery for $original" unless $silent;
-            my $webdir = $website . path $original;
-            my $index = $webdir . 'index.html';
-            `mkdir -p $webdir`;
+            thumbnail $original;
+            my $index = $derivative . 'index.html';
+            say "$original => $index" unless $silent;
+            system "mkdir -p $derivative";
 
             # Calculate the relative path to the root
             my $root = path $original;
@@ -257,15 +265,15 @@ sub exif {
 
 # Extracts the date from a directory name in EXIF format
 sub dirdate {
-    my $dir = name shift or die;
+    my $dir = shift or die;
+    my $name = name $dir;
     my $date;
-    if ($dir =~ /($date_regex)/) {
+    if ($name =~ /($date_regex)/) {
         $date = $1;
         $date =~ s/-/:/g;
         $date .= " 00:00:00";
     }
     else {
-        say "Directory $dir has no explicit date" if $verbose;
         # todo: Return the last modified date as a fallback
         $date = '0000:00:00 00:00:000';
     }
@@ -281,10 +289,24 @@ sub update_needed {
     my $template_time = 0;
 
     if (-f $original) {
+
+        # Update needed if the image thumbnail is missing
+        my $parent_dir = $derivative;
+        $parent_dir =~ s|/[^/]+$||;
+        return true unless -f "$parent_dir/thumbnails/" . name $original;
+        
         $original_time = (stat $original)[9];
         $derivative_time = (stat $derivative)[9];
     }
     elsif (-d $original) {
+
+        # New thumbnail needed if the gallery thumbnail is missing
+        unless (-f $derivative . 'thumbnails/all.jpg') {
+            unless ((path $original) eq '/') {
+                thumbnail $original;
+            }
+        }
+
         my $index = $derivative . 'index.html';
         my $latest = (`ls "$original" -t1`)[0]; # todo: don't fork
         chomp $latest;
@@ -349,8 +371,8 @@ sub ignore {
         return not is_image $candidate;;
     }
     elsif (-d $candidate) {
-        my @listing = dirlist $candidate;
-        return scalar @listing <= 3;
+        my @listing = grep {is_image $_} dirlist $candidate;
+        return scalar @listing < 3;
     }
 }
 
@@ -387,22 +409,123 @@ sub dirlist {
     return @list;
 }
 
+sub ask {
+    my $question = shift;
+    print "$question ";
+    my $answer = <STDIN>;
+    chomp $answer;
+    print "\n";
+    return $answer;
+}
+
+# Creates a thumbnail image of an original image or directory
 sub thumbnail {
     my $original = shift or die;
-    if (-d $original) {
-        # create gallery thumbnail
+    my $path = path $original;
+    my $name = name $original;
+    my $output;
+    if (-f $original) {
+
+        # Calculate thumbnail path
+        my $escaped_name = quotemeta $name;
+        $output = $website . $path;
+        $output =~ s|$escaped_name|thumbnails/|;
+        `mkdir -p "$output"`;
+        $output .= $name;
+
+        # Todo: use Perlmagick API
+        system("convert '$original' \\
+                    -resize '5000x$thumbnail_size' \\
+                    -unsharp 1.5x+0.7+0.02 \\
+                    -quality 88% '$output'") and die;
     }
-    elsif (-f $original) {
-        # create image thumbnail
+    elsif (-d $original) {
+        my $previews;
+        $output = $website . $path . 'thumbnails/all.jpg';
+
+        # Don't create a thumbnail for the homepage
+        return if $path eq '/';
+
+        # Don't create a thumbnail if one already exists
+        return if -f $output;
+
+        # Don't create a thumbnail if there's less than 3 images
+        my $files = grep {is_image $_ } dirlist $original;
+        return if $files < 3;
+        my @options = (3,6,9);
+        pop @options if $files < 9;
+        pop @options if $files < 6;
+
+        if ($customize_thumbnails) {
+            do {
+                say "\nCustomizing thumbnail for \"$name\" ($files images)";
+                $previews = ask "Please choose the number of images to include (3, 6, or 9)";
+            } until (grep {$previews == $_} @options);
+        }
+        else {
+            $previews = $options[-1];
+        }
+
+        # IF IT'S STUPID AND IT WORKS, IT AIN'T STUPID!
+        my @images = `ls -1 '$original' | grep '\.jpg\$' | sort --random-sort | head -$previews`;
+        chomp @images;
+        my $b = '4x4';
+        chdir $website . (path $original) . 'thumbnails';
+        if ($previews == 3) {
+            system("convert -bordercolor black \\
+                \\( '$images[0]' -border $b -resize 200x1000 \\) \\
+                \\( '$images[1]' -border $b -resize 200x1000 \\) \\
+                \\( '$images[2]' -border $b -resize 200x1000 \\) \\
+                -append all.jpg") and die;
+        }
+        elsif ($previews == 6) {
+            system("convert -bordercolor black \\
+                \\( \\( '$images[0]' -border $b \\) \\
+                    \\( '$images[1]' -border $b \\) +append -resize 400x1000 \\) \\
+                \\( \\( '$images[2]' -border $b \\) \\
+                    \\( '$images[3]' -border $b \\) +append -resize 400x1000 \\) \\
+                \\( \\( '$images[4]' -border $b \\) \\
+                    \\( '$images[5]' -border $b \\) +append -resize 400x1000 \\) \\
+                -append all.jpg") and die;
+        }
+        elsif ($previews == 9) {
+            system("convert -bordercolor black \\
+                \\( \\( '$images[0]' -border $b \\) \\
+                    \\( '$images[1]' -border $b \\) \\
+                    \\( '$images[2]' -border $b \\) +append -resize 600x1000 \\) \\
+                \\( \\( '$images[3]' -border $b \\) \\
+                    \\( '$images[4]' -border $b \\) \\
+                    \\( '$images[5]' -border $b \\) +append -resize 600x1000 \\) \\
+                \\( \\( '$images[6]' -border $b \\) \\
+                    \\( '$images[7]' -border $b \\) \\
+                    \\( '$images[8]' -border $b \\) +append -resize 600x1000 \\) \\
+                -append all.jpg") and die;
+        }
+
+        # Remove the index.html of the parent dir, because it needs to
+        # be regenerated with the new gallery thumbnail dimensions
+        my $rm = $website . $path;
+        $rm =~ s|/[^/]+/$||;
+        unlink "$rm/index.html";
     }
 }
 
 sub scale {
-    #todo
+    my $original = shift or die;
+    my $output = $website . path $original;
+    system("convert '$original' \\
+        -resize 10000x$image_size miff:- |\\
+        convert -quality 88% - '$output'") and die;
 }
 
 sub scale_and_watermark {
-    #todo
+    my $original = shift or die;
+    my $output = $website . path $original;
+    die unless $watermark;
+    system("convert '$original' \\
+        -resize 10000x$image_size miff:- |\\
+        composite -gravity southeast '$watermark' - miff:- |\\
+        convert -quality 88% - '$output'") and die;
 }
 
 1;

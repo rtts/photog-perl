@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use utf8;
 use feature 'say';
 use Photography::Website;
 use Config::General;
@@ -158,16 +157,9 @@ for (@ARGV) {
     $silent = 1 if $_ eq '-q';
 }
 
-binmode STDOUT, ":utf8";
-print << 'EOM' unless $silent;
-             ┌────────────────────┐
-─────────────┤ Welcome to Photog! ├──────────────
-             └────────────────────┘
-EOM
-
 unless (-f "$ENV{HOME}/.photogrc") {
     my $config = {};
-    my $config_template = (dist_dir 'photography-website') . "/templates/photogrc";
+    my $config_template = (dist_dir 'Photog') . "/templates/photogrc";
 
     print << 'EOM';
 
@@ -209,7 +201,6 @@ my $conf = Config::General->new("$ENV{HOME}/.photogrc");
 my %config = $conf->getall or die "Error in confuration file ~/photogrc\n";
 $config{Verbose} = $verbose;
 $config{Silent} = $silent;
-say "Found configuration file $ENV{HOME}/.photogrc" if $verbose;
 
 # Check mandatory variables
 for ('Artist', 'Copyright', 'Manipulate_EXIF', 'Pictures', 'Website') {
@@ -217,10 +208,8 @@ for ('Artist', 'Copyright', 'Manipulate_EXIF', 'Pictures', 'Website') {
         die "The mandatory variable \"$_\" is not present in the configuration file ~/.photogrc. Please add it manually or delete the file so photog can regenerate it.";
     }
 }
-say "Configuration file is valid" if $verbose;
-say "Calling Photography::Website::generate()" if $verbose;
+
 Photography::Website::generate(\%config);
-say "─────────────────────────────────────────────────" unless $silent;
 
 sub ask {
     my $question = shift;

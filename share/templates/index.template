@@ -8,7 +8,7 @@
   </head>
   <body>
     <div id="header">
-      <h1><a href="[% root('') %]" id="logo">[% website_title %]</a></h1>
+      <h1 id="logo"><a href="[% root('') %]">[% website_title %]</a></h1>
     </div>
 
     <div id="gallery">
