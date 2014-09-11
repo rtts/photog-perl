@@ -13,6 +13,8 @@ use Digest::MD5 qw(md5_hex);
 use Image::ExifTool qw(:Public);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
+die "Please install ImageMagick\n" unless `convert --version` =~ /ImageMagick/;
+
 our @artists;
 our $copyright;
 our $manipulate_exif;
@@ -128,9 +130,9 @@ sub generate {
     $silent = $config->{Silent};
 
     # Setup the website directory
-    system "mkdir -p $website";
-    system "cp -n --no-preserve=mode $_ $website" for dirlist "$share/static";
-    system "cp -n --no-preserve=mode $share/templates/index.template $website";
+    system "mkdir -p \"$website\"";
+    system "cp -n --no-preserve=mode \"$_\" \"$website\"" for dirlist "$share/static";
+    system "cp -n --no-preserve=mode \"$share/templates/index.template\" \"$website\"";
 
     # Call &process for each item below pictures tree
     say "Scanning $pictures..." unless $silent;
@@ -152,6 +154,7 @@ sub process {
         if (-f $original) {
             say "$original => $derivative" unless $silent;
             thumbnail $original;
+            exif $original;
             if ((parent $original) =~ /$private_regex/) {
                 scale $original;
             }
@@ -168,7 +171,7 @@ sub process {
             thumbnail $original;
             my $index = $derivative . 'index.html';
             say "$original => $index" unless $silent;
-            system "mkdir -p $derivative";
+            system "mkdir -p \"$derivative\"";
 
             # Calculate the relative path to the root
             my $root = path $original;
@@ -239,27 +242,75 @@ sub create_gallery {
 sub exif {
     my $file = shift or die;
     my $data = {};
-    my $exif = ImageInfo($file, 'MakerNote', 'Artist', 'Copyright', 'DateTimeOriginal', 'ExposureTime', 'FNumber', 'ISO');
+    my $exif = ImageInfo($file, 'MakerNotes', 'Artist', 'Copyright', 'DateTimeOriginal', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength');
     if (not %{$exif}) {
         die "EXIF info missing for $file, aborting...\n";
     }
-    
-    # If a raw file with the same name exists, copy over the EXIF data
-    # to the file
-    if ($manipulate_exif) {
-        my $rawfile = $file;
-        for my $ext ('dng', 'nef', 'cr2', 'crw') {
-            $rawfile =~ s/\.jpg/\.$ext/;
-            if (-f $rawfile) {
-                say "Copying EXIF info from $rawfile to $file" if $verbose;
-                # copy exif to jpeg
-                last;
+
+    # Check for and manipulate MakerNote
+    my $makerkey;
+    for (keys %{$exif}) {
+        if (/makernote/i) {
+            $makerkey = $_;
+            last;
+        }
+    }
+    unless ($makerkey) {
+        say "WARNING: MakerNote missing in EXIF data of $file" if $verbose;
+        if ($manipulate_exif) {
+            my $rawfile = $file;
+            $rawfile =~ s|\.jpg$||;
+            for my $ext ('dng', 'DNG', 'nef', 'NEF', 'cr2', 'CR2', 'crw', 'CRW') {
+                if (-f "$rawfile.$ext") {
+                    say "Copying EXIF info from $rawfile.$ext to $file" unless $silent;
+                    system "exiftool -tagsfromfile \"$rawfile.$ext\" \"$file\" > /dev/null";
+                    unlink $file . "_original";
+
+                    # The original has been modified, so call process() again
+                    # process $file;
+                    last;
+                }
             }
         }
     }
+    else {
+        say "MakerNote present in $file ($makerkey)" if $verbose;
+    }
+
+    # Check for and manipulate Artist
+    unless ($exif->{Artist}) {
+        say "WARNING: Artist missing in EXIF data of $file" if $verbose;
+        if ($manipulate_exif) {
+            my $choice = 0;
+            if ($#artists) {
+                do {
+                    say "\nPlease choose between the following artists for $file:";
+                    say $_+1 . ") $artists[$_]" for 0..$#artists;
+                    $choice = (ask "Your choice:");
+                } until ($choice =~ /\d+/ and $artists[$choice - 1]);
+                $choice -= 1;
+            }
+            system "exiftool -m -artist=\"$artists[$choice]\" -copyright=\"$copyright\" \"$file\" > /dev/null";
+            unlink $file . "_original";
+
+            # The original has been modified, so call process() again
+            # process $file;
+        }
+    }
+    else {
+        say "Artist \"$exif->{Artist}\" present in $file" if $verbose;
+    }
 
     $data->{date} = $exif->{DateTimeOriginal} or 0;
-    $data->{settings} = "$exif->{ExposureTime}, $exif->{FNumber}, ISO $exif->{ISO}";
+    # $data->{settings} = "ISO $exif->{ISO}, $exif->{FocalLength}, f/$exif->{FNumber}, $exif->{ExposureTime}sec";
+    my $artist = $exif->{Artist};
+    if ($artist =~ /Jaap Joris Vens/) {
+        $artist = "Jaap Joris";
+    }
+    if ($artist =~ /Jolanda Verhoef/) {
+        $artist = "Jolanda";
+    }
+    $data->{settings} = "<i>by $artist</i>";
     return $data;
 }
 
@@ -274,7 +325,7 @@ sub dirdate {
         $date .= " 00:00:00";
     }
     else {
-        # todo: Return the last modified date as a fallback
+        # todo: Return the created date as a fallback
         $date = '0000:00:00 00:00:000';
     }
     return $date;
@@ -434,10 +485,10 @@ sub thumbnail {
         $output .= $name;
 
         # Todo: use Perlmagick API
-        system("convert '$original' \\
+        system("convert \"$original\" \\
                     -resize '5000x$thumbnail_size' \\
                     -unsharp 1.5x+0.7+0.02 \\
-                    -quality 88% '$output'") and die;
+                    -quality 88% \"$output\"") and die;
     }
     elsif (-d $original) {
         my $previews;
@@ -504,7 +555,7 @@ sub thumbnail {
 
         # Remove the index.html of the parent dir, because it needs to
         # be regenerated with the new gallery thumbnail dimensions
-        my $rm = $website . $path;
+        my $rm = "$website$path";
         $rm =~ s|/[^/]+/$||;
         unlink "$rm/index.html";
     }
@@ -513,19 +564,19 @@ sub thumbnail {
 sub scale {
     my $original = shift or die;
     my $output = $website . path $original;
-    system("convert '$original' \\
+    system("convert \"$original\" \\
         -resize 10000x$image_size miff:- |\\
-        convert -quality 88% - '$output'") and die;
+        convert -quality 88% - \"$output\"") and die;
 }
 
 sub scale_and_watermark {
     my $original = shift or die;
     my $output = $website . path $original;
     die unless $watermark;
-    system("convert '$original' \\
+    system("convert \"$original\" \\
         -resize 10000x$image_size miff:- |\\
-        composite -gravity southeast '$watermark' - miff:- |\\
-        convert -quality 88% - '$output'") and die;
+        composite -gravity southeast \"$watermark\" - miff:- |\\
+        convert -quality 88% - \"$output\"") and die;
 }
 
 1;
