@@ -1,8 +1,16 @@
 Installation instructions
 =========================
 
-To install this program you need Dist::Zilla, which can be installed
-by running the following command as root:
+The installation of Photog! has been tested on Debian GNU/Linux and
+Mac OSX. It should work on Windows, but as it uses some Unix utilities
+(ls and grep) it will probably need Cygwin to run successfully.
+
+First, make sure you have ImageMagick (http://imagemagick.org/)
+installed (e.g., apt-get install imagemagick or brew install
+imagemagick).
+
+Second, you need Dist::Zilla, which can be installed by running
+the following command as root:
 
    cpan Dist::Zilla
 
@@ -11,21 +19,10 @@ is, and run the following command as root:
 
     dzil install
 
-In case you ran these commands as a regular user instead of root, the
-`cpan` and `dzil` tools have tried to install the required modules
-locally to the ~/perl5 directory.  Unfortunately, this will break
-things since the Perl installation does not know by default where
-these modules are. To fix this, run (as a regular user):
-
-   perl -I ~/perl5/lib/perl5 -Mlocal::lib >> ~/.bashrc
-   . ~/.bashrc
-   cpan Dist::Zilla
-   dzil install
-
 After installation, a manpage is available with the following command:
 
-    man Photography::Website
+    man photog
 
-Also, the command named `photog` should be present in your PATH. To
-generate a photography website using default settings, simply type
-`photog` and enjoy!
+Also, the command named `photog` should be available. To generate a
+photography website using default settings, simply type `photog` and
+enjoy!
