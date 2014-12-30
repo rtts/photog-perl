@@ -304,6 +304,7 @@ sub exif {
     $data->{date} = $exif->{DateTimeOriginal} or 0;
     # $data->{settings} = "ISO $exif->{ISO}, $exif->{FocalLength}, f/$exif->{FNumber}, $exif->{ExposureTime}sec";
     my $artist = $exif->{Artist};
+    return $data unless $artist;
     if ($artist =~ /Jaap Joris Vens/) {
         $artist = "Jaap Joris";
     }
@@ -520,27 +521,27 @@ sub thumbnail {
         # IF IT'S STUPID AND IT WORKS, IT AIN'T STUPID!
         my @images = `ls -1 '$original' | grep '\.jpg\$' | sort --random-sort | head -$previews`;
         chomp @images;
-        my $b = '4x4';
+        my $b = '8';
         chdir $website . (path $original) . 'thumbnails';
         if ($previews == 3) {
-            system("convert -bordercolor black \\
+            system("convert -bordercolor black xc:red \\
                 \\( '$images[0]' -border $b -resize 200x1000 \\) \\
                 \\( '$images[1]' -border $b -resize 200x1000 \\) \\
                 \\( '$images[2]' -border $b -resize 200x1000 \\) \\
-                -append all.jpg") and die;
+                -append -crop +0+1 -shave 2 +repage all.jpg") and die;
         }
         elsif ($previews == 6) {
-            system("convert -bordercolor black \\
+            system("convert -bordercolor black xc:red \\
                 \\( \\( '$images[0]' -border $b \\) \\
                     \\( '$images[1]' -border $b \\) +append -resize 400x1000 \\) \\
                 \\( \\( '$images[2]' -border $b \\) \\
                     \\( '$images[3]' -border $b \\) +append -resize 400x1000 \\) \\
                 \\( \\( '$images[4]' -border $b \\) \\
                     \\( '$images[5]' -border $b \\) +append -resize 400x1000 \\) \\
-                -append all.jpg") and die;
+                -append -crop +0+1 -shave 2 +repage all.jpg") and die;
         }
         elsif ($previews == 9) {
-            system("convert -bordercolor black \\
+            system("convert -bordercolor black xc:red \\
                 \\( \\( '$images[0]' -border $b \\) \\
                     \\( '$images[1]' -border $b \\) \\
                     \\( '$images[2]' -border $b \\) +append -resize 600x1000 \\) \\
@@ -550,7 +551,7 @@ sub thumbnail {
                 \\( \\( '$images[6]' -border $b \\) \\
                     \\( '$images[7]' -border $b \\) \\
                     \\( '$images[8]' -border $b \\) +append -resize 600x1000 \\) \\
-                -append all.jpg") and die;
+                -append -crop +0+1 -shave 2 +repage all.jpg") and die;
         }
 
         # Remove the index.html of the parent dir, because it needs to
