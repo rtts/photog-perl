@@ -1,9 +1,15 @@
-Installation instructions
-=========================
+## Photog!
+
+Photog! generates a unique, hierarchical, and chronologically sorted
+photography website, complete with thumbnails and watermarked images,
+based on a user's $HOME/Pictures folder.
+
+##Installation instructions
 
 The installation of Photog! has been tested on Debian GNU/Linux and
 Mac OSX. It should work on Windows, but as it uses some Unix utilities
-(ls and grep) it will probably need Cygwin to run successfully.
+(ls and grep) it needs a Unix compatibility layer (Cygwin) to run
+successfully.
 
 First, make sure you have ImageMagick (http://imagemagick.org/)
 installed (e.g., apt-get install imagemagick or brew install
