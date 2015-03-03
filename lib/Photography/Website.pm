@@ -346,7 +346,7 @@ sub update_needed {
         my $parent_dir = $derivative;
         $parent_dir =~ s|/[^/]+$||;
         return true unless -f "$parent_dir/thumbnails/" . name $original;
-        
+
         $original_time = (stat $original)[9];
         $derivative_time = (stat $derivative)[9];
     }
@@ -381,7 +381,7 @@ sub update_needed {
 sub path {
     my $dir = shift or die;
     my $path = '/';
-    
+
     # Loop over all parent dirs until $pictures
     for (split '/', substr "$dir", length $pictures) {
         next unless $_;
@@ -521,7 +521,7 @@ sub thumbnail {
         # IF IT'S STUPID AND IT WORKS, IT AIN'T STUPID!
         my @images = `ls -1 '$original' | grep '\.jpg\$' | sort --random-sort | head -$previews`;
         chomp @images;
-        my $b = '8';
+        my $b = 8;
         chdir $website . (path $original) . 'thumbnails';
         if ($previews == 3) {
             system("convert -bordercolor black xc:red \\
