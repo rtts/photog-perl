@@ -2,7 +2,8 @@
 
 Photog! generates a unique, hierarchical, and chronologically sorted
 photography website, complete with thumbnails and watermarked images,
-based on a user's $HOME/Pictures folder.
+based on a user's $HOME/Pictures folder. You can see it in production
+on the website of [Super Formosa Photography](http://www.superformosa.nl/).
 
 ##Installation instructions
 
@@ -18,7 +19,7 @@ imagemagick).
 Second, you need Dist::Zilla, which can be installed by running
 the following command as root:
 
-   cpan Dist::Zilla
+    cpan Dist::Zilla
 
 After that, make sure you're in the directory where this INSTALL file
 is, and run the following command as root:
