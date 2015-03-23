@@ -31,6 +31,7 @@ our $share         = dist_dir 'Photog';
 our $date_regex    = '[0-9]{4}-[0-9]{2}-[0-9]{2}';
 our $private_regex = '(private)';
 our $hidden_regex  = '(hidden)';
+our $locked_regex  = '(locked)';
 
 =head1 NAME
 
@@ -88,6 +89,7 @@ sub path;
 sub is_image;
 sub ignore;
 sub title;
+sub strip_dir;
 sub name;
 sub parent;
 sub dirlist;
@@ -161,7 +163,7 @@ sub process {
             elsif (not $watermark) {
                 scale $original;
             }
-            else {
+            elsif ((parent $original) !~ /$locked_regex/) {
                 scale_and_watermark $original;
             }
         }
@@ -182,7 +184,8 @@ sub process {
             my $context = {
                     website_title => "$artists[0] Photography",
                     root => sub { "$root$_[0]" },
-                    items => (create_gallery $original)
+                    items => (create_gallery $original),
+                    locked => ($original =~ /$locked_regex/) ? 1 : 0
                 };
             $tt->process("$website/index.template", $context, $index) or die;
         }
@@ -217,8 +220,8 @@ sub create_gallery {
             # Store gallery-specific info
             $gallery_item->{type} = 'gallery';
             $gallery_item->{date} = dirdate $original;
-            $gallery_item->{src}  = (title $name) . "/thumbnails/all.jpg";
-            $gallery_item->{href} = (title $name) . '/';
+            $gallery_item->{src}  = (strip_dir $name) . "/thumbnails/all.jpg";
+            $gallery_item->{href} = (strip_dir $name) . '/';
         }
 
         my $absolute_src = $website . (path $dir) .  $gallery_item->{src};
@@ -346,6 +349,7 @@ sub update_needed {
         my $parent_dir = $derivative;
         $parent_dir =~ s|/[^/]+$||;
         return true unless -f "$parent_dir/thumbnails/" . name $original;
+#        return false if $original =~ /$locked_regex/;
 
         $original_time = (stat $original)[9];
         $derivative_time = (stat $derivative)[9];
@@ -396,7 +400,7 @@ sub path {
             $path .= md5_hex("$_\n") . '/';
         }
 
-        # Remove date and spaces from directory names
+        # Remove date and anything after a space
         else {
             s/$date_regex //;
             s/ .*//;
@@ -432,8 +436,15 @@ sub ignore {
 sub title {
     my $file = name shift or die;
     $file =~ s/\.[^\.]+$//;
-    $file =~ s/$date_regex //;
     return $file;
+}
+
+# Returns the target directory name
+sub strip_dir {
+    my $dir = name shift or die;
+    $dir =~ s/$date_regex //;
+    $dir =~ s/ .*//;
+    return $dir;
 }
 
 # Returns only the name of a file
