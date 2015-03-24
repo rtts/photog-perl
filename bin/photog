@@ -14,133 +14,118 @@ Photog! - The Photography Website Generator
 
 =head1 SYNOPSIS
 
-B<photog> [I<OPTIONS>]
+B<photog> [I<-q>] [I<-v>] [I<destination>]
 
 =head1 DESCRIPTION
 
-Photog! generates a unique, hierarchical, and chronologically sorted
-photography website, complete with thumbnails and watermarked images,
-based on the $HOME/Pictures folder.
+Photog! turns a directory tree of source images into a photography
+website with nested albums of chronologically sorted photographs. To
+get started, simply C<cd> to the source directory and call C<photog>
+with the destination directory as its argument. Example:
+
+    $ cd ~/Pictures
+    $ photog /var/www
+
+Subsequent runs of the C<photog> command do nothing unless images
+inside the source directory tree have changed. Photog! only
+regenerates the parts of the website that should be updated.
 
 =head1 OPTIONS
 
 =over
 
-=item B<-v>
-
-Be more verbose
-
 =item B<-q>
 
 Be less verbose
 
+=item B<-v>
+
+Be more verbose
+
 =back
-
-=head1 USAGE
-
-The command B<photog> generates a complete photography website and
-stores it in the location set by the configuration file
-B<.photogrc>. See the CONFIGURATION section below for more about the
-configuration details. If a previously generated website already
-exists, Photog! will update it with the latest changes.
-
-The website will show thumbnails of all JPEG files in the Pictures
-folder sorted by EXIF date. Clicking on a thumbnail will give access
-to a bigger, optionally watermarked image. The original images will
-remain untouched (except when the configuration parameter
-Manipulate_EXIF is set to true, see CONFIGURATION below).
-
-Photog! will recurse into all subdirectories of the Pictures folder
-and create corresponding subgalleries. The thumbnail of a subgallery
-shows 3, 6 or 9 randomly selected images from that directory. The
-exact number can be chosen when the gallery thumbnail is generated.
-Once created, gallery thumbnails will not be overwritten, so just
-delete the thumbnail file manually to regenerate it. To guide the sort
-order of subdirectories, prepend the directory name with a date in
-the format YYYY-MM-DD. Otherwise, Photog! will use a directory's
-creation time for determining sort order.
-
-If a directory beneath the Pictures folder contains the string
-I<(hidden)>, the corresponding web gallery will not be listed in the
-parent gallery. This feature allows the home page to remain
-clutter-free while still having access to specific galleries by their
-URL. If a directory contains the string I<(private)>, it will
-not be available under it's regular name but by a generated URL
-consisting of 32 alphanumeric characters. Use this feature to give
-clients private access to their album without publishing it for
-everyone to see.
-
-View the resulting website by opening the website's index.html in a
-web browser or serve the files from a web server. Note: when viewing
-the website locally, not all functionality will work correctly due to
-the limitations webbrowsers impose on local files. For best results,
-serve the website from a webserver, which can be as simple as running
-C<python -m SimpleHTTPServer> inside the website's directory.
-
-To customize the generated website, edit the template file
-B<index.template> that Photog! places inside the Pictures folder upon
-the first run. Edit this file to add a custom logo, links to other
-pages, etc. and then re-run Photog! to regenerate all website pages.
 
 =head1 CONFIGURATION
 
-The Photog! configuration lives in B<~/.photogrc>. When executing
-B<photog> for the first time, it will ask a couple of questions
-and write the answers to the configuration file. This file
-contains a number of "variable = value" directives. Lines starting
-with a C<#> are ignored. These are the available configuration
-variables:
+Photog! reads configuration directives from a file named C<photog.ini>
+inside the current directory. Subdirectories can contain additional
+configuration files that override certain settings from the root
+configuration file. Configuration files contain a number of C<variable
+= value> directives. Lines starting with a C<#> are ignored.
 
-=head2 Artist
+=over
 
-The name of the photographer. Will be used in the website's title, and
-will be added to the EXIF info if Manipulate_EXIF is true. Multiple
-"Artist =" directives are allowed, Photog! will ask for each untagged
-picture who the photographer is.
+=item B<title>
 
-=head2 Copyright
+In the default template, the title appears at the top of the
+page. The default value is the name of an album's source directory.
 
-Copyright information. Will be added to the EXIF info if
-Manipulate_EXIF is true. Otherwise unused.
+=item B<copyright>
 
-=head2 Manipulate_EXIF
+In the default template, the copyright information appears at the
+bottom of the page. The default value is empty.
 
-If set to true, Photog! will add the Artist and Copyright tags to the
-EXIF information of the I<original> image files. As an added bonus, it
-will also check if a corresponding raw file (*.dng, *.nef, *.cr2, or
-*.crw) exists and copy over the MakerNote tag, since many image
-processing software (*caugh* Lightroom) will remove this tag upon
-exporting.
+=item B<template>
 
-=head2 Pictures
+Path to an HTML file containing directives in
+L<Template::Toolkit(3pm)> syntax. By default, Photog! uses the file
+C<index.template> in this module's C<static> directory.
 
-The location of your Pictures folder.
+=item B<destination>
 
-=head2 Watermark
+The destination directory. This variable has no default, and MUST be
+specified either as a command line argument OR in a configuration
+file.
 
-The location of your watermark file, which is preferably a transparent PNG graphic. If unset, web images will not be watermarked.
+=item B<sort>
 
-=head2 Website
+Photos are always sorted according to EXIF date. Possible sort orders
+are: C<ascending> and C<descending>. The default value is
+C<descending>.
 
-The location of the generated photography website.
+=item B<preview>
 
-=head1 FILES
+The number of images to include in an album preview. Default: 9.
 
-=head2 ~/.photogrc
+=item B<slug>
 
-The configuration file. See the section CONFIGURATION for the
-available configuration parameters.
+The URL slug of the album that will be created from the current
+directory. The default value is the directory's name.
+
+=item B<date>
+
+The ISO 8601 date of this album. This is used when sorting items
+chronologically. The default is the directory's modification date.
+
+=item B<unlisted>
+
+A boolean C<true> or C<false> that determines whether the current
+album will be be unlisted on the parent webpage. The album page
+remains accessible to people who know the URL. Defaults to C<false>.
+
+=item B<private>
+
+Like B<unlisted>, but Photog! will generate a random slug to use as
+the album's URL and stores it in a file named C<PRIVATE.URL> inside
+the album's source directory. Defaults to C<false>.
+
+=item B<oblivious>
+
+A boolean C<true> or C<false> that specifies whether C<photog.ini>
+files are required. If C<true>, Photog! will only consider a
+subdirectory an album when it contains a C<photog.ini> file, even if
+the file is empty. Defaults to C<false>.
+
+=back
 
 =head1 SEE ALSO
 
-L<Photography::Website(3pm)|Photography::Website>, the Perl module
-distributed with Photog! which takes care of the actual site
-generation.
+L<Photography::Website(3pm)>, the Perl module that takes care of the
+actual site generation.
 
 =head1 AUTHOR
 
-Photog! was written by Jaap Joris Vens <jj@returntothesource.nl>, and
-is used on his personal photography website http://www.superformosa.nl/
+Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used on
+his personal photography website http://www.superformosa.nl/
 
 =cut
 

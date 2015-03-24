@@ -1,34 +1,68 @@
 ## Photog!
 
-Photog! generates a unique, hierarchical, and chronologically sorted
-photography website, complete with thumbnails and watermarked images,
-based on a user's $HOME/Pictures folder.
+Photog! turns a directory tree of source images into a photography
+website with nested albums of chronologically sorted photographs. It
+is created by [Jaap Joris Vens](http://rtts.eu/about/) who uses it for
+[his personal photography website](http://www.superformosa.nl/).
 
 ##Installation instructions
 
-The installation of Photog! has been tested on Debian GNU/Linux and
-Mac OSX. It should work on Windows, but as it uses some Unix utilities
-(ls and grep) it needs a Unix compatibility layer (Cygwin) to run
-successfully.
+First, make sure you have [ImageMagick](http://imagemagick.org/)
+installed and that the `convert` command is available on the system PATH.
+You can test this by running:
 
-First, make sure you have ImageMagick (http://imagemagick.org/)
-installed (e.g., apt-get install imagemagick or brew install
-imagemagick).
+    $ convert --version
+    Version: ImageMagick 6.8.9-9 Q16 x86_64 2015-01-05 http://www.imagemagick.org
+    Copyright: Copyright (C) 1999-2014 ImageMagick Studio LLC
 
-Second, you need Dist::Zilla, which can be installed by running
-the following command as root:
+Now Photog! can be installed like any other Perl module. There's more
+than one way to do it:
 
-   cpan Dist::Zilla
+###Install as root
 
-After that, make sure you're in the directory where this INSTALL file
-is, and run the following command as root:
+Download the latest release, then extract the files to a temporary
+directory. From there, run the following commands:
 
-    dzil install
+    $ perl Makefile.PL
+    $ make
+    $ sudo make install
+
+###Install as local user
+
+To install Perl modules without root privileges, you need
+[local::lib](http://search.cpan.org/perldoc?local::lib). Make sure
+it's installed (e.g. `apt-get install liblocal-lib-perl` or `yum
+install perl-local-lib`) and that you’ve appended the following line
+to you `~/.bashrc`:
+
+    eval "$(perl -Mlocal::lib)"
+
+Now you can install the module by running the following commands:
+
+    $ perl Makefile.PL
+    $ make
+    $ make install
+
+###Install using Dist::Zilla
+
+This module is maintained using [Dist::Zilla](http://dzil.org/), which
+builds the module distributions and pushes them to the 'releases'
+branch. Dist::Zilla can also be used for installing the module from
+the original source code (which lives in the 'master' branch):
+
+    $ git clone https://github.com/rtts/photog.git
+    $ git checkout master
+    $ dzil install
+
+##Running Photog!
 
 After installation, a manpage is available with the following command:
 
     man photog
 
-Also, the command named `photog` should be available. To generate a
-photography website using default settings, simply type `photog` and
-enjoy!
+To generate a photography website using default settings, simply `cd`
+to your Pictures directory and execute `photog` with the destination
+directory as its argument:
+
+    cd ~/Pictures
+    photog ~/public_html
