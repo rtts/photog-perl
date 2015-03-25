@@ -1,0 +1,353 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use feature 'say';
+use Photography::Website;
+use Cwd;
+use File::Spec::Functions qw(catfile);
+use File::Basename        qw(basename);
+use File::ShareDir        qw(dist_file);
+use Config::General       qw(ParseConfig SaveConfig);
+use String::Random        qw(random_regex);
+use Template; my $tt = Template->new({ABSOLUTE => 1});
+
+my $CONFIG_FILE = "photog.ini";
+
+=head1 NAME
+
+Photog! - The Photography Website Generator
+
+=head1 SYNOPSIS
+
+B<photog> [I<-q>] [I<-v>] [I<destination>]
+
+=head1 DESCRIPTION
+
+Photog! turns a directory tree of source images into a photography
+website with nested albums of chronologically sorted photographs. To
+get started, simply C<cd> to the source directory and call C<photog>
+with the destination directory as its argument. Example:
+
+    $ cd ~/Pictures
+    $ photog /var/www
+
+Subsequent runs of the C<photog> command do nothing unless images
+inside the source directory tree have changed. Photog! only
+regenerates the parts of the website that should be updated.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-q>
+
+Be less verbose
+
+=item B<-v>
+
+Be more verbose
+
+=back
+
+=head1 CONFIGURATION
+
+Photog! reads configuration directives from a file named C<photog.ini>
+inside the current directory. Subdirectories can contain additional
+configuration files that override certain settings from the root
+configuration file. Config files use L<Config::General(3pm)> syntax,
+meaning they contain a number of C<variable = value> directives. The
+C<=>-sign is optional, as is quoting variables. Lines starting with a
+C<#> are ignored.
+
+=over
+
+=item B<title>
+
+In the default template, the title appears at the top of the
+page. The default value is the name of an album's source directory.
+
+=item B<copyright>
+
+In the default template, the copyright information appears at the
+bottom of the page. The default value is empty.
+
+=item B<template>
+
+Path to an HTML file containing directives in
+L<Template::Toolkit(3pm)> syntax. By default, Photog! uses the file
+C<index.template> in this module's C<static> directory.
+
+=item B<destination>
+
+The destination directory. This variable has no default. It must be
+specified as a command line argument or in the configuration
+file.
+
+=item B<sort>
+
+Photos are always sorted according to EXIF date. Possible sort orders
+are: C<ascending> and C<descending>. The default value is
+C<descending>.
+
+=item B<preview>
+
+The number of images to include in an album preview. Default: 9.
+
+=item B<slug>
+
+The URL slug of the album that will be created from the current
+directory. The default value is the directory's name.
+
+=item B<date>
+
+The ISO 8601 date and optionally time of this album. This is used when
+sorting items chronologically. The default is the directory's
+modification date.
+
+=item B<fullscreen>
+
+A boolean C<true> or C<false> to determine full-screen
+capability. This prevents access to full-size images by clients who
+haven't paid yet. Defaults to C<true>.
+
+=item B<unlisted>
+
+A boolean C<true> or C<false> that determines whether the current
+album will be be unlisted on the parent webpage. The album page
+remains accessible to people who know the URL. Defaults to C<false>.
+
+=item B<private>
+
+Like B<unlisted>, but Photog! will generate a random slug to use as
+the album's URL and stores it in a file named C<PRIVATE.URL> inside
+the album's source directory. Defaults to C<false>.
+
+=item B<oblivious>
+
+A boolean C<true> or C<false> that specifies whether C<photog.ini>
+files are required. If C<true>, Photog! will only consider a
+subdirectory an album when it contains a C<photog.ini> file, even if
+the file is empty. Defaults to C<false>.
+
+=back
+
+=head1 SEE ALSO
+
+L<Photography::Website(3pm)>, the Perl module that takes care of the
+actual site generation.
+
+=head1 AUTHOR
+
+Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used on
+his personal photography website http://www.superformosa.nl/
+
+=cut
+
+######################################################################
+
+die "ERROR: ImageMagick is not installed\n"
+    unless `convert --version` =~ /ImageMagick/;
+
+my $silent = 0;
+my $verbose = 0;
+my $source = getcwd();
+my $destination;
+
+for (@ARGV) {
+    if ($_ eq '-v') {
+        $verbose = 1;
+    }
+    elsif ($_ eq '-q') {
+        $silent = 1;
+    }
+    elsif (not defined $destination) {
+        $destination = $_;
+    }
+    else {
+        die "Too many command-line arguments\n";
+    }
+}
+
+my $website = get_config($source) || {};
+$website->{url} = '/';
+$website->{type} = 'album';
+
+# Populate default values
+$website->{source}      ||= $source;
+$website->{title}       ||= basename($source);
+$website->{copyright}   ||= '';
+$website->{template}    ||= dist_file('Photog', 'template.html');
+$website->{sort}        ||= "descending";
+$website->{fullscreen}  ||= 1;
+$website->{unlisted}    ||= 0;
+$website->{private}     ||= 0;
+$website->{oblivious}   ||= 0;
+$website->{destination} ||= $destination || die
+    "ERROR: Destination neither specified on the command line nor in '$source/$CONFIG_FILE'\n";
+$website->{root} = $website->{destination};
+
+# Start the recursion
+process($website);
+
+say "======================================================================" if $verbose;
+
+# Create the website
+create($website);
+
+sub create {
+    my $album = shift;
+    my $index = catfile($album->{destination}, "index.html");
+
+    # Calculate the path to the static resources, relative
+    # to the current page (relative pathnames ensure that
+    # the website can be viewed by a browser locally)
+    my $rel = $album->{url};
+    $rel =~ s:[^/]+/:\.\./:g;
+    $rel =~ s:^/::;
+    $album->{static} = sub { "$rel$_[0]" };
+
+    # Render index.html
+    say $album->{url} unless $silent;
+    $tt->process($album->{template}, $album, $index)
+        || die $tt->error();
+
+    # Recurse
+    for my $item (@{$album->{items}}) {
+        if ($item->{type} eq 'album') {
+            create($item);
+        }
+    }
+}
+
+######################################################################
+
+sub process {
+    my $album = shift;
+    my $dir = $album->{source};
+    for (list($dir)) {
+        my $item;
+
+        # If the item is a file
+        if (-f catfile($dir, $_)) {
+            $item = process_img($_, $album) || next;
+            say $item->{source} if $verbose;
+        }
+
+        # If the item is a directory
+        elsif (-d catfile($dir, $_)) {
+            $item = process_dir($_, $album) || next;
+            say $item->{source} if $verbose;
+
+            # Recurse
+            process($item);
+        }
+        push @{$album->{items}}, $item;
+    }
+}
+
+sub process_img {
+    my $filename = shift;
+    my $parent = shift;
+    my $img = {};
+    return if not is_image($filename);
+    $img->{type}        = 'image';
+    $img->{name}        = strip_suffix($filename);
+    $img->{url}         = $parent->{url} . $filename;
+    $img->{href}        = $filename;
+    $img->{thumbnail}   = "thumbnails/$filename";
+    $img->{source}      = catfile($parent->{source}, $filename);
+    $img->{destination} = catfile($parent->{root}, $img->{url});
+    return $img;
+}
+
+sub process_dir {
+    my $dirname = shift;
+    my $parent = shift;
+    my $source = catfile($parent->{source}, $dirname);
+    my $album = get_config($source);
+
+    # Implementation of the "oblivious" feature
+    if (not $album) {
+        return if $parent->{oblivious};
+        $album = {};
+    }
+
+    # Implementation of the "private" feature
+    # (it simply generates a random slug, sets "unlisted"
+    # to true, and then updates the configuration file)
+    if ($album->{private}) {
+        $album->{slug} = random_regex('[1-9][a-hjkp-z2-9]{15}');
+        $album->{unlisted} = "true";
+        delete $album->{private};
+        save_config($album, $source);
+    }
+
+    # Populate default values with parent's values
+    $album->{type} = 'album';
+    $album->{source}      ||= $source;
+    $album->{name}        ||= basename($dirname);
+    $album->{slug}        ||= basename($dirname);
+    $album->{href}        ||= $album->{slug} . '/';
+    $album->{thumbnail}   ||= $album->{href} . "thumbnails/all.jpg";
+    $album->{url}         ||= $parent->{url} . $album->{slug} . '/';
+    $album->{root}        ||= $parent->{root};
+    $album->{destination} ||= catfile($album->{root}, $album->{url});
+    $album->{title}       ||= $parent->{title};
+    $album->{copyright}   ||= $parent->{copyright};
+    $album->{template}    ||= $parent->{template};
+    $album->{sort}        ||= $parent->{sort};
+    $album->{fullscreen}  ||= $parent->{fullscreen};
+    $album->{oblivious}   ||= $parent->{oblivious};
+    return $album;
+}
+
+######################################################################
+
+sub get_config {
+    my $directory = shift;
+    my $file = catfile($directory, $CONFIG_FILE);
+    if (-f $file) {
+        return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1) };
+    }
+    else {
+        return 0;
+    }
+}
+
+sub save_config {
+    my $config = shift;
+    my $directory = shift;
+    my $file = catfile($directory ,$CONFIG_FILE);
+    open(my $fh, '>', $file)
+        or die "ERROR: Can't open '$file' for writing\n";
+    for my $key (keys %{$config}) {
+        say $fh "$key = $config->{$key}";
+    }
+}
+
+sub list {
+    my $dir = shift;
+    my @files;
+    my @dirs;
+    opendir(my $dh, $dir) or die
+        "ERROR: Cannot read contents of directory '$dir'\n";
+    while (readdir $dh) {
+        next if /^\./;
+        push @files, $_ if -f "$dir/$_";
+        push @dirs, $_ if -d "$dir/$_";
+    }
+    sub alphabetical { lc($a) cmp lc($b) }
+    @files = sort alphabetical @files;
+    @dirs = sort alphabetical @dirs;
+    return @dirs, @files;
+}
+
+sub is_image {
+    return shift =~ /\.jpg$/;
+}
+
+sub strip_suffix {
+    my $file = shift;
+    $file =~ s/\.[^\.]+$//;
+    return $file;
+}

@@ -1,0 +1,113 @@
+@font-face {
+  font-family: 'Source Sans Pro';
+  font-style: normal;
+  font-weight: 200;
+  src: url('SourceSansPro-ExtraLight.woff') format('woff');
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: black;
+    color: white;
+    font-family: sans-serif;
+}
+
+body {
+    overflow-y: scroll;
+}
+
+a, a:visited {
+    color: #aaf;
+}
+
+h1, h2, h3 {
+    font-weight: 200;
+    line-heigth: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+#gallery {
+    line-height: 0;
+    margin-top: 70px;
+}
+
+#gallery img {
+    margin-bottom: 4px;
+    margin-left: 4px;
+    display: block;
+    float: left;
+}
+
+#header {
+    position: fixed;
+    background: black;
+    background: rgba(0,0,0,.75);
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 51;
+    padding-top: 10px;
+    padding-bottom: 6px;
+    font-weight: 200;
+    font-size: 1.5em;
+    font-family: Source Sans Pro;
+    letter-spacing: 0.15em;
+}
+
+#logo {
+    vertical-align: bottom;
+    display: inline;
+    padding-right: 15px;
+    padding-left: 4px;
+    line-height: 100%;
+    font-size: 50px;
+    font-variant: small-caps;
+    white-space: nowrap;
+}
+
+#logo a {
+    color: #999;
+    text-decoration: none;
+}
+
+a.email, a.menuitem {
+    color: #999;
+    text-decoration: none;
+    padding-left: 5px;
+}
+
+a.email {
+    margin-top: 20px;
+    padding-right: 8px;
+    float: right;
+}
+
+.settings {
+    font-size: .75em;
+}
+
+.mfp-with-zoom .mfp-container,
+.mfp-with-zoom.mfp-bg {
+  opacity: 0;
+  -webkit-backface-visibility: hidden;
+  /* ideally, transition speed should match zoom duration */
+  -webkit-transition: all 0.3s ease-out; 
+  -moz-transition: all 0.3s ease-out; 
+  -o-transition: all 0.3s ease-out; 
+  transition: all 0.3s ease-out;
+}
+
+.mfp-with-zoom.mfp-ready .mfp-container {
+    opacity: 1;
+}
+.mfp-with-zoom.mfp-ready.mfp-bg {
+    opacity: 0.8;
+}
+
+.mfp-with-zoom.mfp-removing .mfp-container, 
+.mfp-with-zoom.mfp-removing.mfp-bg {
+  opacity: 0;
+}
