@@ -15,13 +15,14 @@ You can test this by running:
     Version: ImageMagick 6.8.9-9 Q16 x86_64 2015-01-05 http://www.imagemagick.org
     Copyright: Copyright (C) 1999-2014 ImageMagick Studio LLC
 
-Now Photog! can be installed like any other Perl module. There's more
-than one way to do it:
+Now Photog! can be installed like any other Perl module. And like any
+other Perl module, there's more than one way to do it:
 
 ###Install as root
 
-Download the latest release, then extract the files to a temporary
-directory. From there, run the following commands:
+[Download the latest release](https://github.com/rtts/photog/archive/stable.zip),
+then extract the files to a temporary directory. From there, run the
+following commands:
 
     $ perl Makefile.PL
     $ make
