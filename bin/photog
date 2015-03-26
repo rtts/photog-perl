@@ -4,11 +4,14 @@ use strict;
 use feature 'say';
 use Photography::Website;
 use Cwd;
-use File::Spec::Functions qw(catfile);
-use File::Basename        qw(basename);
-use File::ShareDir        qw(dist_file);
-use Config::General       qw(ParseConfig SaveConfig);
-use String::Random        qw(random_regex);
+use File::Spec::Functions         qw(catfile);
+use File::Basename                qw(basename dirname);
+use File::ShareDir                qw(dist_file);
+use File::Path                    qw(make_path);
+use Config::General               qw(ParseConfig);
+use String::Random                qw(random_regex);
+use Algorithm::Numerical::Shuffle qw(shuffle);
+use Array::Utils                  qw(array_minus);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
 my $CONFIG_FILE = "photog.ini";
@@ -168,33 +171,216 @@ for (@ARGV) {
     }
 }
 
-my $website = get_config($source) || {};
-$website->{url} = '/';
-$website->{type} = 'album';
+if (not -f "$source/photog.ini" and not defined $destination) {
+    die "Please specifiy a destination for your photography website. You can do this as a command-line argument ('photog ../public_html') or in the configuration file 'photog.ini'. See 'man photog' for more information.\n";
+}
 
-# Populate default values
-$website->{source}      ||= $source;
-$website->{title}       ||= basename($source);
-$website->{copyright}   ||= '';
-$website->{template}    ||= dist_file('Photog', 'template.html');
-$website->{sort}        ||= "descending";
-$website->{fullscreen}  ||= 1;
-$website->{unlisted}    ||= 0;
-$website->{private}     ||= 0;
-$website->{oblivious}   ||= 0;
-$website->{destination} ||= $destination || die
-    "ERROR: Destination neither specified on the command line nor in '$source/$CONFIG_FILE'\n";
-$website->{root} = $website->{destination};
+# Process the pictures tree
+my $website = create_album($source);
 
-# Start the recursion
-process($website);
+# Generate the website
+generate($website);
 
-say "======================================================================" if $verbose;
+######################################################################
 
-# Create the website
-create($website);
+sub create_album {
+    my $source = shift;
+    my $parent = shift || 0; # optional
+    my $album = configure($source, $parent) || return;
+    for (list($source)) {
+        my $item;
+        if (-f) {
+            $item = create_img($_, $album) || next;
+        }
+        elsif (-d) {
+            $item = create_album($_, $album) || next;
+        }
+        push @{$album->{items}}, $item;
+    }
+    return $album;
+}
 
-sub create {
+sub create_img {
+    my $source = shift;
+    my $parent = shift;
+    return if not is_image($source);
+    my $img = {};
+    my $filename = basename($source);
+    $img->{type}        = 'image';
+    $img->{name}        = strip_suffix($filename);
+    $img->{url}         = $parent->{url} . $filename;
+    $img->{href}        = $filename;
+    $img->{src}         = "thumbnails/$filename";
+    $img->{source}      = $source;
+    $img->{destination} = catfile($parent->{destination}, $img->{url});
+    $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
+    $img->{watermark}   = $parent->{watermark};
+    return $img;
+}
+
+sub configure {
+    my $source = shift;
+    my $parent = shift || 0; # optional
+    my $album = get_config($source);
+
+    # Special case for root albums
+    $parent = $album if not $parent;
+
+    # Implementation of the "oblivious" feature
+    if (not $album) {
+        return if $parent->{oblivious};
+        $album = {};
+    }
+
+    # Implementation of the "private" feature
+    if ($album->{private}) {
+        $album->{slug} = random_regex('[1-9][a-hjkp-z2-9]{15}');
+        $album->{unlisted} = "true";
+        delete $album->{private};
+        save_config($album, $source);
+    }
+
+    # FIXED PARAMETERS
+    # These cannot be changed from a config file.
+    $album->{type}   = 'album';
+    $album->{source} = $source;
+    $album->{name}   = basename($source);
+    $album->{root}   = $parent->{root} || $parent->{destination} || die
+        "ERROR: Destination not specified";
+
+    # SPECIAL PARAMETERS
+    # Either set in the config file or calculated dynamically
+    $album->{slug}        ||= basename($source);
+    $album->{url}         ||= $parent->{url} ? "$parent->{url}$album->{slug}/": "/";
+    $album->{href}        ||= $album->{slug} . '/';
+    $album->{src}         ||= $album->{href} . "thumbnails/all.jpg";
+    $album->{destination} ||= catfile($album->{root}, substr($album->{url}, 1));
+    $album->{thumbnail}   ||= catfile($album->{destination}, "thumbnails/all.jpg");
+    $album->{unlisted}    ||= ($album == $parent);
+
+    # REGULAR PARAMETERS
+    # Set in the config file, propagated from parent, or a default value.
+    $album->{title}      ||= $parent->{title}      || "My Photography Website";
+    $album->{copyright}  ||= $parent->{copyright}  || '';
+    $album->{template}   ||= $parent->{template}   || dist_file('Photog', 'template.html');
+    $album->{preview}    ||= $parent->{preview}    || 9;
+    $album->{watermark}  ||= $parent->{watermark}  || '';
+    $album->{sort}       ||= $parent->{sort}       || 'descending';
+    $album->{fullscreen} ||= $parent->{fullscreen} || 1;
+    $album->{oblivious}  ||= $parent->{oblivious}  || 0;
+
+    return $album;
+}
+
+######################################################################
+
+sub generate {
+    my $album = shift;
+    my $parent = shift || 0 # optional;
+    my $update_needed = 0;
+
+    for my $item (@{$album->{items}}) {
+        if ($item->{type} eq 'image') {
+            update_image($item) and $update_needed = 1;
+            update_thumbnail($item) and $update_needed = 1;
+        }
+        if ($item->{type} eq 'album') {
+            generate($item, $parent) and $update_needed = 1;
+        }
+    }
+    update_preview($album, $parent) and $update_needed = 1;
+
+    # This is a relic from an older version of Photog, where I would
+    # have to conti
+    has_index($album) or $update_needed = 1;
+
+    if ($update_needed) {
+        update_index($album);
+    }
+}
+
+sub update_image {
+    my $img = shift;
+    return if is_newer($img->{destination}, $img->{source});
+
+    say $img->{url} unless $silent;
+    make_path(dirname($img->{destination}));
+    if ($img->{watermark}) {
+        system('photog-watermark',
+               $img->{source},
+               $img->{watermark},
+               $img->{destination},
+           );
+    }
+    else {
+        system('photog-scale',
+               $img->{source},
+               $img->{destination},
+           );
+    }
+    return 1;
+}
+
+
+sub update_thumbnail {
+    my $img = shift;
+    return if is_newer($img->{thumbnail}, $img->{source});
+
+    say $img->{thumbnail} unless $silent;
+    make_path(dirname($img->{thumbnail}));
+    system('photog-thumbnail',
+           $img->{source},
+           $img->{thumbnail},
+       );
+    return 1;
+}
+
+sub update_preview {
+    my $album = shift;
+    my $parent = shift || 0; # optional
+    return if $album->{unlisted};
+    return if -f $album->{thumbnail};
+
+    my @images = grep { $->{type} eq 'image' } @{$album->{items}};
+
+    if ($parent) {
+        my @exclude = grep { $->{type} eq 'image' } @{$parent->{items}};
+        for (@images
+                 
+                 
+                 
+        if ($parent) {
+        # Create an list of all image thumbnails whose filename
+
+        my @images;
+        for (@{$parent->{items}}) {
+            next unless $_->{type} eq 'image';
+            say $_->{href};
+            push @images, $_ unless exists $excl{$_->{href}};
+        }
+
+        # get items from array @a that are not in array @b
+        my @minus = array_minus( @a, @b );
+
+    say for @images;
+    say for keys %excl;
+
+    my $size = scalar @images;
+    if ($size < $album->{preview}) {
+        die "ERROR: The album '$album->{name}' is configured to show $album->{preview} preview images, but it only contains $size images.\n";
+    }
+    
+    # Shuffle the list and pick N preview images
+    my @preview = @{[shuffle @images]}[0..($album->{preview})-1];
+
+    make_path(dirname($album->{thumbnail}));
+
+    die "I'm dying to execute system('photog-preview', @preview, $album-{thumbnail})";
+
+    return 1;
+}
+
+sub update_index {
     my $album = shift;
     my $index = catfile($album->{destination}, "index.html");
 
@@ -207,99 +393,11 @@ sub create {
     $album->{static} = sub { "$rel$_[0]" };
 
     # Render index.html
-    say $album->{url} unless $silent;
+    say "$album->{url}index.html" unless $silent;
     $tt->process($album->{template}, $album, $index)
         || die $tt->error();
-
-    # Recurse
-    for my $item (@{$album->{items}}) {
-        if ($item->{type} eq 'album') {
-            create($item);
-        }
-    }
 }
 
-######################################################################
-
-sub process {
-    my $album = shift;
-    my $dir = $album->{source};
-    for (list($dir)) {
-        my $item;
-
-        # If the item is a file
-        if (-f catfile($dir, $_)) {
-            $item = process_img($_, $album) || next;
-            say $item->{source} if $verbose;
-        }
-
-        # If the item is a directory
-        elsif (-d catfile($dir, $_)) {
-            $item = process_dir($_, $album) || next;
-            say $item->{source} if $verbose;
-
-            # Recurse
-            process($item);
-        }
-        push @{$album->{items}}, $item;
-    }
-}
-
-sub process_img {
-    my $filename = shift;
-    my $parent = shift;
-    my $img = {};
-    return if not is_image($filename);
-    $img->{type}        = 'image';
-    $img->{name}        = strip_suffix($filename);
-    $img->{url}         = $parent->{url} . $filename;
-    $img->{href}        = $filename;
-    $img->{thumbnail}   = "thumbnails/$filename";
-    $img->{source}      = catfile($parent->{source}, $filename);
-    $img->{destination} = catfile($parent->{root}, $img->{url});
-    return $img;
-}
-
-sub process_dir {
-    my $dirname = shift;
-    my $parent = shift;
-    my $source = catfile($parent->{source}, $dirname);
-    my $album = get_config($source);
-
-    # Implementation of the "oblivious" feature
-    if (not $album) {
-        return if $parent->{oblivious};
-        $album = {};
-    }
-
-    # Implementation of the "private" feature
-    # (it simply generates a random slug, sets "unlisted"
-    # to true, and then updates the configuration file)
-    if ($album->{private}) {
-        $album->{slug} = random_regex('[1-9][a-hjkp-z2-9]{15}');
-        $album->{unlisted} = "true";
-        delete $album->{private};
-        save_config($album, $source);
-    }
-
-    # Populate default values with parent's values
-    $album->{type} = 'album';
-    $album->{source}      ||= $source;
-    $album->{name}        ||= basename($dirname);
-    $album->{slug}        ||= basename($dirname);
-    $album->{href}        ||= $album->{slug} . '/';
-    $album->{thumbnail}   ||= $album->{href} . "thumbnails/all.jpg";
-    $album->{url}         ||= $parent->{url} . $album->{slug} . '/';
-    $album->{root}        ||= $parent->{root};
-    $album->{destination} ||= catfile($album->{root}, $album->{url});
-    $album->{title}       ||= $parent->{title};
-    $album->{copyright}   ||= $parent->{copyright};
-    $album->{template}    ||= $parent->{template};
-    $album->{sort}        ||= $parent->{sort};
-    $album->{fullscreen}  ||= $parent->{fullscreen};
-    $album->{oblivious}   ||= $parent->{oblivious};
-    return $album;
-}
 
 ######################################################################
 
@@ -307,11 +405,9 @@ sub get_config {
     my $directory = shift;
     my $file = catfile($directory, $CONFIG_FILE);
     if (-f $file) {
-        return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1) };
+        return ParseConfig(-ConfigFile=>$file, -AutoTrue=>1);
     }
-    else {
-        return 0;
-    }
+    return 0;
 }
 
 sub save_config {
@@ -333,8 +429,8 @@ sub list {
         "ERROR: Cannot read contents of directory '$dir'\n";
     while (readdir $dh) {
         next if /^\./;
-        push @files, $_ if -f "$dir/$_";
-        push @dirs, $_ if -d "$dir/$_";
+        push @files, "$dir/$_" if -f "$dir/$_";
+        push @dirs, "$dir/$_" if -d "$dir/$_";
     }
     sub alphabetical { lc($a) cmp lc($b) }
     @files = sort alphabetical @files;
@@ -350,4 +446,19 @@ sub strip_suffix {
     my $file = shift;
     $file =~ s/\.[^\.]+$//;
     return $file;
+}
+
+sub is_newer {
+    my $file1 = shift;
+    my $file2 = shift;
+    return unless -f $file1 and -f $file2;
+    my $time1 = (stat $file1)[9];
+    my $time2 = (stat $file2)[9];
+    return $time1 > $time2;
+}
+
+sub has_index {
+    my $album = shift;
+    my $index = catfile($album->{destination}, "index.html");
+    return -f $index;
 }
