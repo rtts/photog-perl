@@ -44,16 +44,17 @@ configuration options. If you want to learn about the internals of
 Photog!, read on.
 
 A photography website is generated in two stages. The first stage
-processes the source directories to search for images and optional
-C<photog.ini> files. This stage is kicked off by the create_album()
-function, which recursively builds the complete data structure and
-returns it.
+searches the source directory tree for images and optional
+C<photog.ini> files, and processes them into a datastructure of nested
+albums. An album is simply a hash of configuration variables one of
+which references a list of further hashes. This stage is kicked off by
+the create_album() function.
 
-The second stage loops through this data structure and compares all
+The second stage loops through this data structure, compares all
 the sources with their destinations, and (re)generates them if
 needed. It builds a complete website with nested albums of photographs
 that mirrors the structure of the source image directory. This process
-is started with the create() function.
+is started with the generate() function.
 
 =head1 FUNCTIONS
 
@@ -187,9 +188,6 @@ sub configure {
 
 =head2 Site Generation Functions
 
-This section describes the functions that deal with (re)generating
-files at the website destination.
-
 =over
 
 =item B<generate>(I<$album>[, I<$parent>])
@@ -227,9 +225,9 @@ sub generate {
 
 Given an $img node, checks if the image source is newer than the
 destination. If needed, it shells out to the the C<photog-watermark>
-or C<photog-scale> command (depending on the image configuration) to
-update the website image. Returns true if the destination has been
-updated or false is nothing needed to be done.
+or C<photog-scale> command (depending on the configuration) to update
+the website image. Returns true if the destination has been updated or
+false is nothing needed to be done.
 
 =cut
 
@@ -279,7 +277,9 @@ sub update_thumbnail {
 
 =item B<update_preview>(I<$album>[, I<$parent>])
 
-An album preview consists of random selection of a configurable number of the album's images, composited together. This function updates the preview if needed and returns true when it has.
+An album preview consists of random selection of a configurable number
+of the album's images, composited together. This function updates the
+preview if needed and returns true when it has.
 
 =cut
 
@@ -337,13 +337,13 @@ sub update_index {
         || die $tt->error();
 }
 
-=item B<select_image>(I<$album>[, I<$parent>])
+=item B<select_images>(I<$album>[, I<$parent>])
 
 Returns a list of image paths that are eligible for inclusion in an
 album preview. If an optional $parent is supplied, it makes sure that
 the list only contains images whose filename does not appear in the
 parent album. The reason for this is that the author of Photog! likes
-to show his best photographs from an album on the front page, but not
+to show the best photographs from an album on the front page, but not
 also have those photographs included in an album preview.
 
 =cut

@@ -45,17 +45,33 @@ Be more verbose
 Photog! reads configuration directives from a file named C<photog.ini>
 inside the current directory. Subdirectories can contain additional
 configuration files that override certain settings from the root
-configuration file. Config files use L<Config::General(3pm)> syntax,
-meaning they contain a number of C<variable = value> directives. The
-C<=>-sign is optional, as is quoting variables. Lines starting with a
-C<#> are ignored.
+configuration file. Config files consist of a number of C<variable =
+value> directives. Lines starting with a C<#> are ignored.
 
 =over
 
 =item B<title>
 
-In the default template, the title appears at the top of the
-page. The default value is the name of an album's source directory.
+In the default template, the title appears at the top of the page. The
+default value is "My Photography Website". Please set this to for
+instance your own name. You can also override it for specific albums
+to show an album name.
+
+=item B<destination>
+
+The destination directory. This variable has no default. It must be
+specified as a command line argument or in the root configuration
+file. Although possible, overriding this option for subdirectories results in broken URLs. Use the B<url> option instead.
+
+=item B<slug>
+
+A slug is the part of the URL that identifies an album, e.g. C<www.example.com/slug/>. The default value is the directory's name, so be careful not to use characters in directory names that are not allowed in URLs, like space. Or, simply override this value to choose an appropriate URL for each album.
+
+=item B<url>
+
+This option sets an absolute url for the album rather than a
+slug. This allows the source directories to be differently organized
+than the destination directories.
 
 =item B<copyright>
 
@@ -68,11 +84,13 @@ Path to an HTML file containing directives in
 L<Template::Toolkit(3pm)> syntax. By default, Photog! uses the file
 C<index.template> in this module's C<static> directory.
 
-=item B<destination>
+=item B<preview>
 
-The destination directory. This variable has no default. It must be
-specified as a command line argument or in the configuration
-file.
+An album preview is a thumbnail image of the album that contains a number of smaller images. This option sets the number of preview images for an album. Allowed values are 3, 6, and 9. The default is 9.
+
+=item B<watermark>
+
+The path to a transparent PNG file that will be used to watermark all full-size images in an album. The command C<photog-watermark> is called to do the actual watermarking, and it currently places the watermark in the lower right corner. The default is to not watermark website images.
 
 =item B<sort>
 
@@ -80,26 +98,17 @@ Photos are always sorted according to EXIF date. Possible sort orders
 are: C<ascending> and C<descending>. The default value is
 C<descending>.
 
-=item B<preview>
+=item B<fullscreen>
 
-The number of images to include in an album preview. Default: 9.
-
-=item B<slug>
-
-The URL slug of the album that will be created from the current
-directory. The default value is the directory's name.
+A boolean C<true> or C<false> to determine full-screen
+capability. This prevents access to full-size images by clients who
+haven't paid yet. Defaults to C<true>.
 
 =item B<date>
 
 The ISO 8601 date and optionally time of this album. This is used when
 sorting items chronologically. The default is the directory's
 modification date.
-
-=item B<fullscreen>
-
-A boolean C<true> or C<false> to determine full-screen
-capability. This prevents access to full-size images by clients who
-haven't paid yet. Defaults to C<true>.
 
 =item B<unlisted>
 
@@ -109,9 +118,10 @@ remains accessible to people who know the URL. Defaults to C<false>.
 
 =item B<private>
 
-Like B<unlisted>, but Photog! will generate a random slug to use as
-the album's URL and stores it in a file named C<PRIVATE.URL> inside
-the album's source directory. Defaults to C<false>.
+When this option is set to C<true>, Photog! will generate a random
+B<slug> and save it in the album's C<photog.ini>. This happens only
+once, because the new C<photog.ini> will have this option unset
+again. Defaults to C<false>.
 
 =item B<oblivious>
 
