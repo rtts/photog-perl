@@ -26,13 +26,13 @@
       [% FOREACH item IN items %]
       [% IF item.type == 'image' %]
       [% IF fullscreen %]
-      <a title="Click image to enlarge" href="[% item.href %]" class="photolink"><img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.thumbnail %]"></a>
+      <a title="Click image to enlarge" href="[% item.href %]" class="photolink"><img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.src %]"></a>
       [% ELSE %]
-      <img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.thumbnail %]">
+      <img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.src %]">
       [% END %]
       [% ELSIF item.type == 'album' %]
       [% UNLESS item.unlisted %]
-      <a title="Click to view complete album" href="[% item.href %]"><img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.thumbnail %]"></a>
+      <a title="Click to view complete album" href="[% item.href %]"><img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.src %]"></a>
       [% END %]
       [% END %]
       [% END %]

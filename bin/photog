@@ -1,17 +1,8 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use feature 'say';
-use Photography::Website;
 use Cwd;
-use File::Spec::Functions qw(catfile);
-use File::Basename        qw(basename);
-use File::ShareDir        qw(dist_file);
-use Config::General       qw(ParseConfig SaveConfig);
-use String::Random        qw(random_regex);
-use Template; my $tt = Template->new({ABSOLUTE => 1});
-
-my $CONFIG_FILE = "photog.ini";
+use Photography::Website;
 
 =head1 NAME
 
@@ -148,17 +139,15 @@ his personal photography website http://www.superformosa.nl/
 die "ERROR: ImageMagick is not installed\n"
     unless `convert --version` =~ /ImageMagick/;
 
-my $silent = 0;
-my $verbose = 0;
 my $source = getcwd();
 my $destination;
 
 for (@ARGV) {
     if ($_ eq '-v') {
-        $verbose = 1;
+        $Photography::Website::verbose = 1;
     }
     elsif ($_ eq '-q') {
-        $silent = 1;
+        $Photography::Website::silent = 1;
     }
     elsif (not defined $destination) {
         $destination = $_;
@@ -168,186 +157,12 @@ for (@ARGV) {
     }
 }
 
-my $website = get_config($source) || {};
-$website->{url} = '/';
-$website->{type} = 'album';
-
-# Populate default values
-$website->{source}      ||= $source;
-$website->{title}       ||= basename($source);
-$website->{copyright}   ||= '';
-$website->{template}    ||= dist_file('Photog', 'template.html');
-$website->{sort}        ||= "descending";
-$website->{fullscreen}  ||= 1;
-$website->{unlisted}    ||= 0;
-$website->{private}     ||= 0;
-$website->{oblivious}   ||= 0;
-$website->{destination} ||= $destination || die
-    "ERROR: Destination neither specified on the command line nor in '$source/$CONFIG_FILE'\n";
-$website->{root} = $website->{destination};
-
-# Start the recursion
-process($website);
-
-say "======================================================================" if $verbose;
-
-# Create the website
-create($website);
-
-sub create {
-    my $album = shift;
-    my $index = catfile($album->{destination}, "index.html");
-
-    # Calculate the path to the static resources, relative
-    # to the current page (relative pathnames ensure that
-    # the website can be viewed by a browser locally)
-    my $rel = $album->{url};
-    $rel =~ s:[^/]+/:\.\./:g;
-    $rel =~ s:^/::;
-    $album->{static} = sub { "$rel$_[0]" };
-
-    # Render index.html
-    say $album->{url} unless $silent;
-    $tt->process($album->{template}, $album, $index)
-        || die $tt->error();
-
-    # Recurse
-    for my $item (@{$album->{items}}) {
-        if ($item->{type} eq 'album') {
-            create($item);
-        }
-    }
+if (not -f "$source/photog.ini" and not defined $destination) {
+    die "Please specifiy a destination for your photography website. You can do this as a command-line argument ('photog ../public_html') or in the configuration file 'photog.ini'. See 'man photog' for more information.\n";
 }
 
-######################################################################
+# Process the pictures tree
+my $website = Photography::Website::create_album($source);
 
-sub process {
-    my $album = shift;
-    my $dir = $album->{source};
-    for (list($dir)) {
-        my $item;
-
-        # If the item is a file
-        if (-f catfile($dir, $_)) {
-            $item = process_img($_, $album) || next;
-            say $item->{source} if $verbose;
-        }
-
-        # If the item is a directory
-        elsif (-d catfile($dir, $_)) {
-            $item = process_dir($_, $album) || next;
-            say $item->{source} if $verbose;
-
-            # Recurse
-            process($item);
-        }
-        push @{$album->{items}}, $item;
-    }
-}
-
-sub process_img {
-    my $filename = shift;
-    my $parent = shift;
-    my $img = {};
-    return if not is_image($filename);
-    $img->{type}        = 'image';
-    $img->{name}        = strip_suffix($filename);
-    $img->{url}         = $parent->{url} . $filename;
-    $img->{href}        = $filename;
-    $img->{thumbnail}   = "thumbnails/$filename";
-    $img->{source}      = catfile($parent->{source}, $filename);
-    $img->{destination} = catfile($parent->{root}, $img->{url});
-    return $img;
-}
-
-sub process_dir {
-    my $dirname = shift;
-    my $parent = shift;
-    my $source = catfile($parent->{source}, $dirname);
-    my $album = get_config($source);
-
-    # Implementation of the "oblivious" feature
-    if (not $album) {
-        return if $parent->{oblivious};
-        $album = {};
-    }
-
-    # Implementation of the "private" feature
-    # (it simply generates a random slug, sets "unlisted"
-    # to true, and then updates the configuration file)
-    if ($album->{private}) {
-        $album->{slug} = random_regex('[1-9][a-hjkp-z2-9]{15}');
-        $album->{unlisted} = "true";
-        delete $album->{private};
-        save_config($album, $source);
-    }
-
-    # Populate default values with parent's values
-    $album->{type} = 'album';
-    $album->{source}      ||= $source;
-    $album->{name}        ||= basename($dirname);
-    $album->{slug}        ||= basename($dirname);
-    $album->{href}        ||= $album->{slug} . '/';
-    $album->{thumbnail}   ||= $album->{href} . "thumbnails/all.jpg";
-    $album->{url}         ||= $parent->{url} . $album->{slug} . '/';
-    $album->{root}        ||= $parent->{root};
-    $album->{destination} ||= catfile($album->{root}, $album->{url});
-    $album->{title}       ||= $parent->{title};
-    $album->{copyright}   ||= $parent->{copyright};
-    $album->{template}    ||= $parent->{template};
-    $album->{sort}        ||= $parent->{sort};
-    $album->{fullscreen}  ||= $parent->{fullscreen};
-    $album->{oblivious}   ||= $parent->{oblivious};
-    return $album;
-}
-
-######################################################################
-
-sub get_config {
-    my $directory = shift;
-    my $file = catfile($directory, $CONFIG_FILE);
-    if (-f $file) {
-        return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1) };
-    }
-    else {
-        return 0;
-    }
-}
-
-sub save_config {
-    my $config = shift;
-    my $directory = shift;
-    my $file = catfile($directory ,$CONFIG_FILE);
-    open(my $fh, '>', $file)
-        or die "ERROR: Can't open '$file' for writing\n";
-    for my $key (keys %{$config}) {
-        say $fh "$key = $config->{$key}";
-    }
-}
-
-sub list {
-    my $dir = shift;
-    my @files;
-    my @dirs;
-    opendir(my $dh, $dir) or die
-        "ERROR: Cannot read contents of directory '$dir'\n";
-    while (readdir $dh) {
-        next if /^\./;
-        push @files, $_ if -f "$dir/$_";
-        push @dirs, $_ if -d "$dir/$_";
-    }
-    sub alphabetical { lc($a) cmp lc($b) }
-    @files = sort alphabetical @files;
-    @dirs = sort alphabetical @dirs;
-    return @dirs, @files;
-}
-
-sub is_image {
-    return shift =~ /\.jpg$/;
-}
-
-sub strip_suffix {
-    my $file = shift;
-    $file =~ s/\.[^\.]+$//;
-    return $file;
-}
+# Generate the website
+Photography::Website::generate($website);
