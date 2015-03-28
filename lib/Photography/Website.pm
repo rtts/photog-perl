@@ -2,21 +2,24 @@ package Photography::Website;
 use strict;
 use warnings;
 use feature 'say';
-use Image::Size           qw(imgsize);
+
+use DateTime;
+use File::Copy            qw(copy);
 use File::Path            qw(make_path);
 use File::Basename        qw(basename dirname);
-use File::ShareDir        qw(dist_file);
+use File::ShareDir        qw(dist_file dist_dir);
 use File::Spec::Functions qw(catfile);
+use Image::Size           qw(imgsize);
+use Image::ExifTool       qw(ImageInfo);
 use Config::General       qw(ParseConfig);
 use String::Random        qw(random_regex);
 use Array::Utils          qw(array_minus);
-use Image::ExifTool       qw(ImageInfo);
 use Algorithm::Numerical::Shuffle qw(shuffle);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
-our $silent = 0;
-our $verbose = 0;
-my $CONFIG_FILE = "photog.ini";
+our $silent      = 0;
+our $verbose     = 0;
+my  $CONFIG_FILE = "photog.ini";
 
 =head1 NAME
 
@@ -39,22 +42,23 @@ Photography::Website
 
 The Photography::Website module contains the core of the Photog!
 photography website generator. If you're looking to generate websites,
-please refer to the L<photog(3pm)> manpage for instructions and
+please refer to the L<photog(3)> manpage for instructions and
 configuration options. If you want to learn about the internals of
 Photog!, read on.
 
 A photography website is generated in two stages. The first stage
 searches the source directory tree for images and optional
-C<photog.ini> files, and processes them into a datastructure of nested
+C<photog.ini> files, and processes them into a data structure of nested
 albums. An album is simply a hash of configuration variables one of
 which references a list of further hashes. This stage is kicked off by
 the create_album() function.
 
-The second stage loops through this data structure, compares all
-the sources with their destinations, and (re)generates them if
-needed. It builds a complete website with nested albums of photographs
-that mirrors the structure of the source image directory. This process
-is started with the generate() function.
+The second stage loops through this data structure, compares all the
+sources with their destinations, and (re)generates them if needed. It
+builds a website with nested album pages than contain image thubmnails
+and album preview thumbnails. The structure of album pages mirrors the
+structure of the source image directory. This process is started with
+the generate() function.
 
 =head1 FUNCTIONS
 
@@ -71,7 +75,7 @@ website resources. Third, simple helper functions.
 
 The main entry point for creating a website structure. $source should
 be a directory name, $parent is only used when this function is called
-recursively. Returns an album that with nested sub-albums that represents
+recursively. Returns an album with nested sub-albums that represents
 the source directory tree.
 
 =cut
@@ -107,15 +111,20 @@ sub create_img {
     return if not is_image($source);
     my $img = {};
     my $filename = basename($source);
-    $img->{type}        = 'image';
-    $img->{name}        = strip_suffix($filename);
-    $img->{url}         = $parent->{url} . $filename;
-    $img->{href}        = $filename;
-    $img->{src}         = "thumbnails/$filename";
-    $img->{source}      = $source;
+
+    # Populate image hash
+    $img->{type}   = 'image';
+    $img->{name}   = strip_suffix($filename);
+    $img->{url}    = $parent->{url} . $filename;
+    $img->{href}   = $filename;
+    $img->{src}    = "thumbnails/$filename";
+    $img->{source} = $source;
     $img->{destination} = catfile($parent->{destination}, $img->{url});
     $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
     $img->{watermark}   = $parent->{watermark};
+    $img->{scale_command}     = $parent->{scale_command};
+    $img->{watermark_command} = $parent->{watermark_command};
+    $img->{thumbnail_command} = $parent->{thumbnail_command};
     return $img;
 }
 
@@ -152,34 +161,70 @@ sub configure {
         save_config($album, $source);
     }
 
-    # FIXED PARAMETERS
-    # These cannot be changed from a config file.
+    # Fixed parameters - These cannot be changed from a config file.
     $album->{type}   = 'album';
     $album->{source} = $source;
     $album->{name}   = basename($source);
     $album->{root}   = $parent->{root} || $parent->{destination} || die
         "ERROR: Destination not specified";
 
-    # SPECIAL PARAMETERS
-    # Either set in the config file or calculated dynamically
-    $album->{slug}        ||= basename($source);
-    $album->{url}         ||= $parent->{url} ? "$parent->{url}$album->{slug}/": "/";
-    $album->{href}        ||= $album->{slug} . '/';
-    $album->{src}         ||= $album->{href} . "thumbnails/all.jpg";
-    $album->{destination} ||= catfile($album->{root}, substr($album->{url}, 1));
-    $album->{thumbnail}   ||= catfile($album->{destination}, "thumbnails/all.jpg");
-    $album->{unlisted}    ||= ($album == $parent);
+    # Special parameters - Either set in the config file or
+    # calculated dynamically
+    $album->{slug}
+        ||= basename($source);
+    $album->{url}
+        ||= $parent->{url} ? "$parent->{url}$album->{slug}/": "/";
+    $album->{href}
+        ||= $album->{slug} . '/';
+    $album->{src}
+        ||= $album->{href} . "thumbnails/all.jpg";
+    $album->{destination}
+        ||= catfile($album->{root}, substr($album->{url}, 1));
+    $album->{thumbnail}
+        ||= catfile($album->{destination}, "thumbnails/all.jpg");
+    $album->{unlisted}
+        ||= ($album == $parent);
+    $album->{date}
+        ||= DateTime->from_epoch(epoch => (stat $source)[9]);
 
-    # REGULAR PARAMETERS
-    # Set in the config file, propagated from parent, or a default value.
-    $album->{title}      ||= $parent->{title}      || "My Photography Website";
-    $album->{copyright}  ||= $parent->{copyright}  || '';
-    $album->{template}   ||= $parent->{template}   || dist_file('Photog', 'template.html');
-    $album->{preview}    ||= $parent->{preview}    || 9;
-    $album->{watermark}  ||= $parent->{watermark}  || '';
-    $album->{sort}       ||= $parent->{sort}       || 'descending';
-    $album->{fullscreen} ||= $parent->{fullscreen} || 1;
-    $album->{oblivious}  ||= $parent->{oblivious}  || 0;
+    # Regular parameters - Set in the config file, propagated from
+    # parent, or a default value.
+    $album->{title}
+        ||= $parent->{title}
+        || "My Photography Website";
+    $album->{copyright}
+        ||= $parent->{copyright}
+        || '';
+    $album->{template}
+        ||= $parent->{template}
+        || dist_file('Photog', 'template.html');
+    $album->{preview}
+        ||= $parent->{preview}
+        || 9;
+    $album->{watermark}
+        ||= $parent->{watermark}
+        || '';
+    $album->{sort}
+        ||= $parent->{sort}
+        || 'descending';
+    $album->{fullscreen}
+        ||= $parent->{fullscreen}
+        || 1;
+    $album->{oblivious}
+        ||= $parent->{oblivious}
+        || 0;
+    $album->{scale_command}
+        ||= $parent->{scale_command}
+        || 'photog-scale';
+    $album->{watermark_command}
+        ||= $parent->{watermark_command}
+        || 'photog-watermark';
+    $album->{thumbnail_command}
+        ||= $parent->{thumbnail_command}
+        || 'photog-thumbnail';
+    $album->{preview_command}
+        ||= $parent->{preview_command}
+        || 'photog-preview';
 
     return $album;
 }
@@ -204,12 +249,20 @@ sub generate {
     my $parent = shift; # optional;
     my $update_needed = 0;
 
+    # Copy static files to destination root
+    if (not $parent) {
+        for (list(catfile(dist_dir('Photog'), 'static'))) {
+            copy($_, $album->{destination}) or die "$_: $!";
+        }
+    }
+
+    # Recursively update image files and album pages
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
             update_image($item) and $update_needed = 1;
             update_thumbnail($item) and $update_needed = 1;
         }
-        if ($item->{type} eq 'album') {
+        elsif ($item->{type} eq 'album') {
             generate($item, $parent) and $update_needed = 1;
         }
     }
@@ -238,14 +291,14 @@ sub update_image {
     say $img->{url} unless $silent;
     make_path(dirname($img->{destination}));
     if ($img->{watermark}) {
-        system('photog-watermark',
+        system($img->{watermark_command},
                $img->{source},
                $img->{watermark},
                $img->{destination},
            );
     }
     else {
-        system('photog-scale',
+        system($img->{scale_command},
                $img->{source},
                $img->{destination},
            );
@@ -266,9 +319,9 @@ sub update_thumbnail {
     my $img = shift;
     return if is_newer($img->{thumbnail}, $img->{source});
 
-    say $img->{thumbnail} unless $silent;
+    say $img->{thumbnail} if $verbose;
     make_path(dirname($img->{thumbnail}));
-    system('photog-thumbnail',
+    system($img->{thumbnail_command},
            $img->{source},
            $img->{thumbnail},
        );
@@ -292,11 +345,12 @@ sub update_preview {
     my @images = select_images($album, $parent);
     my $size = scalar @images;
     if ($size < 3) {
-        die "ERROR: Not enough images in $album->{name} to create a preview (minimum is 3)";
+        say "WARNING: Not enough images in '$album->{name}' to create a preview (minimum is 3)";
+        return;
     }
     elsif ($size < $album->{preview}) {
-        $album->{preview} = $size;
         say "WARNING: Only $size preview images available for '$album->{name}'" unless $silent;
+        $album->{preview} = $size;
     }
 
     # Round the number of preview images down to 3, 6, or 9
@@ -305,8 +359,9 @@ sub update_preview {
     # Shuffle the list and pick N preview images
     @images = @{[shuffle @images]}[0..($album->{preview})-1];
 
+    say "Creating album preview containing $album->{preview} images..." unless $silent;
     make_path(dirname($album->{thumbnail}));
-    system('photog-preview',
+    system($album->{preview_command},
            @images,
            $album->{thumbnail},
        );
@@ -315,13 +370,14 @@ sub update_preview {
 
 =item B<update_index>(I<$album>)
 
-Renders the C<index.html> at the $album's destination. Returns nothing.
+Renders the C<index.html> at the $album's destination, after sorting the album's items by date. Returns nothing.
 
 =cut
 
 sub update_index {
     my $album = shift;
     my $index = catfile($album->{destination}, "index.html");
+    say "$album->{url}index.html" unless $silent;
 
     # Calculate the path to the static resources, relative
     # to the current page (relative pathnames ensure that
@@ -331,8 +387,25 @@ sub update_index {
     $rel =~ s:^/::;
     $album->{static} = sub { "$rel$_[0]" };
 
+    # Calculate and store image sizes and dates
+    for (grep {$_->{type} eq 'image'} @{$album->{items}}) {
+        ($_->{width}, $_->{height}) = imgsize($_->{thumbnail});
+        $_->{date} = exifdate($_->{source});
+    }
+
+    # Sort
+    if ($album->{sort} eq 'ascending') {
+        @{$album->{items}} = sort {
+            $a->{date} cmp $b->{date}
+        } @{$album->{items}};
+    }
+    elsif ($album->{sort} eq 'descending') {
+        @{$album->{items}} = sort {
+            $b->{date} cmp $a->{date}
+        } @{$album->{items}};
+    }
+
     # Render index.html
-    say "$album->{url}index.html" unless $silent;
     $tt->process($album->{template}, $album, $index)
         || die $tt->error();
 }
@@ -359,7 +432,7 @@ sub select_images {
         @images = grep {$exclude{$_->{href}}} @images;
     }
 
-    return map {$_->{source}} @images;
+    return map {$_->{thumbnail}} @images;
 }
 
 =back
@@ -385,7 +458,7 @@ sub get_config {
     return 0;
 }
 
-=item B<save_config>(I<config>, I<$directory>)
+=item B<save_config>(I<$config>, I<$directory>)
 
 The other way around, saves the $config hash reference to the file
 photog.ini inside the $directory. Returns nothing.
@@ -479,102 +552,23 @@ sub has_index {
     return -f $index;
 }
 
-1;
-__END__
+=item B<exifdate>(I<$file>)
 
-# Returns some EXIF data of an image in a hash reference
-sub exif {
+Extracts the value of the Exif tag C<DateTimeOriginal> from the provided image path and returns it. Prints a warning and returns of the Exif tag could not be found.
+
+=cut
+
+sub exifdate {
     my $file = shift or die;
-    my $data = {};
-    my $exif = ImageInfo($file, 'MakerNotes', 'Artist', 'Copyright', 'DateTimeOriginal', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength');
-    if (not %{$exif}) {
-        die "EXIF info missing for $file, aborting...\n";
+    my $exif = ImageInfo($file, 'DateTimeOriginal');
+    if (not $exif->{DateTimeOriginal}) {
+        say "WARNING: Exif tag 'DateTimeOriginal' missing from '$file'";
+        return;
     }
-
-    # Check for and manipulate MakerNote
-    my $makerkey;
-    for (keys %{$exif}) {
-        if (/makernote/i) {
-            $makerkey = $_;
-            last;
-        }
-    }
-    unless ($makerkey) {
-        say "WARNING: MakerNote missing in EXIF data of $file" if $verbose;
-        if ($manipulate_exif) {
-            my $rawfile = $file;
-            $rawfile =~ s|\.jpg$||;
-            for my $ext ('dng', 'DNG', 'nef', 'NEF', 'cr2', 'CR2', 'crw', 'CRW') {
-                if (-f "$rawfile.$ext") {
-                    say "Copying EXIF info from $rawfile.$ext to $file" unless $silent;
-                    system "exiftool -tagsfromfile \"$rawfile.$ext\" \"$file\" > /dev/null";
-                    unlink $file . "_original";
-
-                    # The original has been modified, so call process() again
-                    # process $file;
-                    last;
-                }
-            }
-        }
-    }
-    else {
-        say "MakerNote present in $file ($makerkey)" if $verbose;
-    }
-
-    # Check for and manipulate Artist
-    unless ($exif->{Artist}) {
-        say "WARNING: Artist missing in EXIF data of $file" if $verbose;
-        if ($manipulate_exif) {
-            my $choice = 0;
-            if ($#artists) {
-                do {
-                    say "\nPlease choose between the following artists for $file:";
-                    say $_+1 . ") $artists[$_]" for 0..$#artists;
-                    $choice = (ask "Your choice:");
-                } until ($choice =~ /\d+/ and $artists[$choice - 1]);
-                $choice -= 1;
-            }
-            system "exiftool -m -artist=\"$artists[$choice]\" -copyright=\"$copyright\" \"$file\" > /dev/null";
-            unlink $file . "_original";
-
-            # The original has been modified, so call process() again
-            # process $file;
-        }
-    }
-    else {
-        say "Artist \"$exif->{Artist}\" present in $file" if $verbose;
-    }
-
-    $data->{date} = $exif->{DateTimeOriginal} or 0;
-    # $data->{settings} = "ISO $exif->{ISO}, $exif->{FocalLength}, f/$exif->{FNumber}, $exif->{ExposureTime}sec";
-    my $artist = $exif->{Artist};
-    return $data unless $artist;
-    if ($artist =~ /Jaap Joris Vens/) {
-        $artist = "Jaap Joris";
-    }
-    if ($artist =~ /Jolanda Verhoef/) {
-        $artist = "Jolanda";
-    }
-    $data->{settings} = "<i>by $artist</i>";
-    return $data;
+    return $exif->{DateTimeOriginal};
 }
 
-# Extracts the date from a directory name in EXIF format
-sub dirdate {
-    my $dir = shift or die;
-    my $name = name $dir;
-    my $date;
-    if ($name =~ /($date_regex)/) {
-        $date = $1;
-        $date =~ s/-/:/g;
-        $date .= " 00:00:00";
-    }
-    else {
-        # todo: Return the created date as a fallback
-        $date = '0000:00:00 00:00:000';
-    }
-    return $date;
-}
+=back
 
 =head1 SEE ALSO
 
@@ -583,7 +577,7 @@ L<photog(3pm)|photog>
 =head1 AUTHOR
 
 Photography::Website was written by Jaap Joris Vens <jj@rtts.eu>, and is
-used on his personal photography website http://www.superformosa.nl/
+used to create his personal photography website at http://www.superformosa.nl/
 
 =cut
 
