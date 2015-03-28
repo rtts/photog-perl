@@ -90,7 +90,7 @@ bottom of the page. The default value is empty.
 =item B<template>
 
 Path to an HTML file containing directives in
-L<Template::Toolkit(3pm)> syntax. The default is the file
+L<Template::Toolkit(3)> syntax. The default is the file
 C<template.html> that's included with Photog!. Use it as a starting
 point to create your own template!
 
@@ -233,6 +233,7 @@ if (not -f "$source/photog.ini") {
     }
     else {
         die "Please specifiy a destination for your photography website. You can do this either as a command-line argument or in the configuration file 'photog.ini'. See 'man photog' for more information.\n";
+    }
 }
 
 # Process the pictures tree
