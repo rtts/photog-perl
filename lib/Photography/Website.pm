@@ -37,53 +37,31 @@ Photography::Website
 
 =head1 DESCRIPTION
 
-This Perl module generates a new or updates an existing photography
-website. Please refer to the manual page of L<photog(3pm)|photog> for
-documentation about the B<photog> command that provides a
-user-friendly interface to use this module.
-
-=head1 OPERATION
+The Photography::Website module contains the core of the Photog!
+photography website generator. If you're looking to generate websites,
+please refer to the L<photog(3pm)> manpage for instructions and
+configuration options. If you want to learn about the internals of
+Photog!, read on.
 
 A photography website is generated in two stages. The first stage
-processes the source directories to search for images and optional
-C<photog.ini> files. This stage is kicked off by the
-B<create_album>(I<$source_directory>) function, which recursively
-builds the complete data structure and returns it. An example
-structure is:
+searches the source directory tree for images and optional
+C<photog.ini> files, and processes them into a datastructure of nested
+albums. An album is simply a hash of configuration variables one of
+which references a list of further hashes. This stage is kicked off by
+the create_album() function.
 
-    {
-      type => 'album'
-      source => '/home/jj/Pictures',
-      destination => '/home/jj/website',
-      items => [
-        {
-          type => 'image',
-          source => '/home/jj/Pictures/Sunset.jpg',
-          destination => '/home/jj/website/Sunset.jpg',
-          thumbnail => '/home/jj/website/thumbnails/Sunset.jpg',
-        },
-        {
-          type => 'album',
-          source => '/home/jj/Pictures/architecture',
-          destination => '/home/jj/Pictures/architecture',
-          items => [],
-        },
-      ],
-    }
-
-The second stage loops through this data structure and compares all
+The second stage loops through this data structure, compares all
 the sources with their destinations, and (re)generates them if
 needed. It builds a complete website with nested albums of photographs
 that mirrors the structure of the source image directory. This process
-is started with the B<create>(I<$data_structure>) function.
+is started with the generate() function.
 
 =head1 FUNCTIONS
 
-The rest of this manpage is a reference of all Photography::Website
-module's functions.  These are divided into three categories:
-1. functions that process the source files and directories,
-2. functions that generate the website resource, and 3. helper
-functions.
+The rest of this manpage is a description of the module's functions.
+They are divided into three categories.  First, functions that process
+the source files and directories.  Second, functions that generate the
+website resources. Third, simple helper functions.
 
 =head2 Source Processing Functions
 
@@ -147,8 +125,8 @@ Configures a new album in various ways. First, it tries to get the
 configuration from a file named C<photog.ini> in the album's $source
 directory. Second, it tries to copy the configuration variables from
 the $parent album. Finally, it supplies default values. Returns a
-reference to a new album, without any items in the $album->{items}
-array.
+reference to a new album, but one that doesn't have any child nodes
+yet.
 
 =cut
 
@@ -206,18 +184,18 @@ sub configure {
     return $album;
 }
 
-######################################################################
-
 =back
 
 =head2 Site Generation Functions
 
-This section describes the functions that deal with (re)generating
-files at the website destination.
-
 =over
 
 =item B<generate>(I<$album>[, I<$parent>])
+
+The second main entry point that generates the actual website images
+and HTML files at the destinations specified inside the $album data
+structure. The second parameter, $parent, is only used when called
+recursively. It returns nothing.
 
 =cut
 
@@ -243,6 +221,16 @@ sub generate {
     }
 }
 
+=item B<update_image>(I<$img>)
+
+Given an $img node, checks if the image source is newer than the
+destination. If needed, it shells out to the the C<photog-watermark>
+or C<photog-scale> command (depending on the configuration) to update
+the website image. Returns true if the destination has been updated or
+false is nothing needed to be done.
+
+=cut
+
 sub update_image {
     my $img = shift;
     return if is_newer($img->{destination}, $img->{source});
@@ -266,6 +254,14 @@ sub update_image {
 }
 
 
+=item B<update_thumbnail>(I<$img>)
+
+Like update_image(), but calls C<photog-thumbnail> to update the image
+thumbnail if needed. Returns true if the thumbnail has been
+(re)generated, else false.
+
+=cut
+
 sub update_thumbnail {
     my $img = shift;
     return if is_newer($img->{thumbnail}, $img->{source});
@@ -278,6 +274,14 @@ sub update_thumbnail {
        );
     return 1;
 }
+
+=item B<update_preview>(I<$album>[, I<$parent>])
+
+An album preview consists of random selection of a configurable number
+of the album's images, composited together. This function updates the
+preview if needed and returns true when it has.
+
+=cut
 
 sub update_preview {
     my $album = shift;
@@ -309,6 +313,12 @@ sub update_preview {
     return 1;
 }
 
+=item B<update_index>(I<$album>)
+
+Renders the C<index.html> at the $album's destination. Returns nothing.
+
+=cut
+
 sub update_index {
     my $album = shift;
     my $index = catfile($album->{destination}, "index.html");
@@ -327,25 +337,44 @@ sub update_index {
         || die $tt->error();
 }
 
+=item B<select_images>(I<$album>[, I<$parent>])
+
+Returns a list of image paths that are eligible for inclusion in an
+album preview. If an optional $parent is supplied, it makes sure that
+the list only contains images whose filename does not appear in the
+parent album. The reason for this is that the author of Photog! likes
+to show the best photographs from an album on the front page, but not
+also have those photographs included in an album preview.
+
+=cut
+
 sub select_images {
     my $album = shift;
     my $parent = shift; # optional
-
     my @images = grep { $_->{type} eq 'image' } @{$album->{items}};
+
     if ($parent) {
         my @parent_images = grep { $_->{type} eq 'image' } @{$parent->{items}};
         my %exclude = map {$_ => 1} map {$_->{href}} @parent_images;
         @images = grep {$exclude{$_->{href}}} @images;
     }
-    @images = map {$_->{source}} @images;
-    # End result: @images contains full paths to images whose filename does not
-    # appear in the parent album
 
-    return @images;
+    return map {$_->{source}} @images;
 }
 
+=back
 
-######################################################################
+=head2 Helper Functions
+
+=over
+
+=item B<get_config>(I<$directory>)
+
+Tries to find and parse $directory/photog.ini into a configuration
+hash and returns a reference to it. Returns false if no photog.ini was
+found.
+
+=cut
 
 sub get_config {
     my $directory = shift;
@@ -355,6 +384,13 @@ sub get_config {
     }
     return 0;
 }
+
+=item B<save_config>(I<config>, I<$directory>)
+
+The other way around, saves the $config hash reference to the file
+photog.ini inside the $directory. Returns nothing.
+
+=cut
 
 sub save_config {
     my $config = shift;
@@ -366,6 +402,13 @@ sub save_config {
         say $fh "$key = $config->{$key}";
     }
 }
+
+=item B<list>(I<$dir>)
+
+Returns a list of absolute pathnames to all the files and directories
+inside $dir.
+
+=cut
 
 sub list {
     my $dir = shift;
@@ -384,15 +427,36 @@ sub list {
     return @dirs, @files;
 }
 
+=item B<is_image>(I<$filename>)
+
+Returns true if the filename ends with C<.jpg>.
+
+=cut
+
 sub is_image {
     return shift =~ /\.jpg$/;
 }
+
+=item B<strip_suffix>(I<$filename>)
+
+Removes all characters after the last dot of $filename, and the dot
+itself.
+
+=cut
 
 sub strip_suffix {
     my $file = shift;
     $file =~ s/\.[^\.]+$//;
     return $file;
 }
+
+=item B<is_newer>(I<$file1>, I<$file2>)
+
+Determines the modification times of $file1 and $file2 (which should
+pathnames). It both files exist and $file1 is newer than $file2, it
+returns true.
+
+=cut
 
 sub is_newer {
     my $file1 = shift;
@@ -403,11 +467,18 @@ sub is_newer {
     return $time1 > $time2;
 }
 
+=item B<has_index>(I<$album>)
+
+Returns true if there exists a file named C<index.html> at the album's destination.
+
+=cut
+
 sub has_index {
     my $album = shift;
     my $index = catfile($album->{destination}, "index.html");
     return -f $index;
 }
+
 1;
 __END__
 
