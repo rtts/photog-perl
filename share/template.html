@@ -98,7 +98,7 @@
       function imageTitle(obj) {
         var img = obj.el.children('img');
         var title = img.attr('alt');
-        return title + ' <span class="download">(<a title="Click to download full-size image" href="' + obj.src + '" download>download full size</a>)</span>';
+        return title + ' <span class="download">(<a title="Click to download full-size image" href="' + obj.src + '" download>download</a>)</span>';
 }
 
       $(window).resize(function () { run(366); });

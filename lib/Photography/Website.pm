@@ -164,6 +164,7 @@ sub configure {
     # Fixed parameters - These cannot be changed from a config file.
     $album->{type}   = 'album';
     $album->{source} = $source;
+    $album->{config} = catfile($source, $CONFIG_FILE);
     $album->{name}   = basename($source);
     $album->{root}   = $parent->{root} || $parent->{destination} || die
         "ERROR: Destination not specified";
@@ -182,6 +183,8 @@ sub configure {
         ||= catfile($album->{root}, substr($album->{url}, 1));
     $album->{thumbnail}
         ||= catfile($album->{destination}, "thumbnails/all.jpg");
+    $album->{index}
+        ||= catfile($album->{destination}, "index.html");
     $album->{unlisted}
         ||= ($album == $parent);
     $album->{date}
@@ -259,19 +262,16 @@ sub generate {
     # Recursively update image files and album pages
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
-            update_image($item) and $update_needed = 1;
-            update_thumbnail($item) and $update_needed = 1;
+            update_image($item);
+            update_thumbnail($item);
         }
         elsif ($item->{type} eq 'album') {
-            generate($item, $album) and $update_needed = 1;
+            generate($item, $album);
         }
     }
-    update_preview($album, $parent) and $update_needed = 1;
-    has_index($album) or $update_needed = 1;
 
-    if ($update_needed) {
-        update_index($album);
-    }
+    update_preview($album, $parent);
+    update_index($album);
 }
 
 =item B<update_image>(I<$img>)
@@ -279,8 +279,7 @@ sub generate {
 Given an $img node, checks if the image source is newer than the
 destination. If needed, it shells out to the the C<photog-watermark>
 or C<photog-scale> command (depending on the configuration) to update
-the website image. Returns true if the destination has been updated or
-false is nothing needed to be done.
+the website image.
 
 =cut
 
@@ -303,15 +302,13 @@ sub update_image {
                $img->{destination},
            );
     }
-    return 1;
 }
 
 
 =item B<update_thumbnail>(I<$img>)
 
 Like update_image(), but calls C<photog-thumbnail> to update the image
-thumbnail if needed. Returns true if the thumbnail has been
-(re)generated, else false.
+thumbnail if needed.
 
 =cut
 
@@ -325,14 +322,13 @@ sub update_thumbnail {
            $img->{source},
            $img->{thumbnail},
        );
-    return 1;
 }
 
 =item B<update_preview>(I<$album>[, I<$parent>])
 
 An album preview consists of random selection of a configurable number
 of the album's images, composited together. This function updates the
-preview if needed and returns true when it has.
+preview thumbnail, but only if one doesn't exist already.
 
 =cut
 
@@ -365,18 +361,17 @@ sub update_preview {
            @images,
            $album->{thumbnail},
        );
-    return 1;
 }
 
 =item B<update_index>(I<$album>)
 
-Renders the C<index.html> at the $album's destination, after sorting the album's items by date. Returns nothing.
+First checks if regeneration of the $album's C<index.html> is needed by calling update_needed(). If so, it sorts the album's items by date and renders C<index.html> at the album's destination.
 
 =cut
 
 sub update_index {
     my $album = shift;
-    my $index = catfile($album->{destination}, "index.html");
+    return unless update_needed($album);
     say "$album->{url}index.html" unless $silent;
 
     # Calculate the path to the static resources, relative
@@ -395,7 +390,6 @@ sub update_index {
         }
     }
 
-    # Sort
     if ($album->{sort} eq 'ascending') {
         @{$album->{items}} = sort {
             $a->{date} cmp $b->{date}
@@ -407,9 +401,33 @@ sub update_index {
         } @{$album->{items}};
     }
 
-    # Render index.html
-    $tt->process($album->{template}, $album, $index)
+    $tt->process($album->{template}, $album, $album->{index})
         || die $tt->error();
+}
+
+=item B<update_needed>(I<$album>)
+
+Checks if the $album's C<index.html> should be updated. It returns true if any of the album's thumbnails has been regenerated since the last time the index was created. Also returns true if the album's C<photog.ini> file has been modified. Otherwise returns false.
+
+=cut
+
+sub update_needed {
+    my $album = shift;
+
+    if (not -f $album->{index}) {
+        return 1;
+    }
+    elsif (is_newer($album->{config}, $album->{index})) {
+        return 1;
+    }
+    else {
+        for (@{$album->{items}}) {
+            if (is_newer($_->{thumbnail}, $album->{index})) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 =item B<select_images>(I<$album>[, I<$parent>])
@@ -426,15 +444,22 @@ also have those photographs included in an album preview.
 sub select_images {
     my $album = shift;
     my $parent = shift; # optional
-    my @images = grep { $_->{type} eq 'image' } @{$album->{items}};
-
     if ($parent) {
-        my @parent_images = grep { $_->{type} eq 'image' } @{$parent->{items}};
-        my %exclude = map {$_ => 1} map {$_->{href}} @parent_images;
-        @images = grep {$exclude{$_->{href}}} @images;
-    }
 
-    return map {$_->{thumbnail}} @images;
+        # Read the following lines from end to beginning
+        my %excl = map {$_ => 1}
+            map {$_->{href}}
+            grep {$_->{type} eq 'image'}
+            @{$parent->{items}};
+
+        return map {$_->{thumbnail}}
+            grep {not $excl{$_->{href}}}
+            grep { $_->{type} eq 'image' }
+            @{$album->{items}};
+    }
+    else {
+        return map {$_->{thumbnail}} @{$album->{items}};
+    }
 }
 
 =back
@@ -540,18 +565,6 @@ sub is_newer {
     my $time1 = (stat $file1)[9];
     my $time2 = (stat $file2)[9];
     return $time1 > $time2;
-}
-
-=item B<has_index>(I<$album>)
-
-Returns true if there exists a file named C<index.html> at the album's destination.
-
-=cut
-
-sub has_index {
-    my $album = shift;
-    my $index = catfile($album->{destination}, "index.html");
-    return -f $index;
 }
 
 =item B<exifdate>(I<$file>)

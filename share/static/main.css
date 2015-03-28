@@ -17,6 +17,9 @@ html {
   background: black;
 }
 
+a {
+  outline: none;
+}
 
 
 /* HEADER
