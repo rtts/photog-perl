@@ -263,15 +263,13 @@ sub generate {
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
             update_image($item);
-            update_thumbnail($item);
         }
         elsif ($item->{type} eq 'album') {
             generate($item, $album);
         }
     }
 
-    update_preview($album, $parent);
-    update_index($album);
+    update_album($album, $parent);
 }
 
 =item B<update_image>(I<$img>)
@@ -279,13 +277,14 @@ sub generate {
 Given an $img node, checks if the image source is newer than the
 destination. If needed, it shells out to the the C<photog-watermark>
 or C<photog-scale> command (depending on the configuration) to update
-the website image.
+the website image. Then it calls C<photog-thumbnail> to update the
+image thumbnail.
 
 =cut
 
 sub update_image {
     my $img = shift;
-    return if is_newer($img->{destination}, $img->{source});
+    return unless update_needed($img);
 
     say $img->{url} unless $silent;
     make_path(dirname($img->{destination}));
@@ -302,21 +301,6 @@ sub update_image {
                $img->{destination},
            );
     }
-}
-
-
-=item B<update_thumbnail>(I<$img>)
-
-Like update_image(), but calls C<photog-thumbnail> to update the image
-thumbnail if needed.
-
-=cut
-
-sub update_thumbnail {
-    my $img = shift;
-    return if is_newer($img->{thumbnail}, $img->{source});
-
-    say $img->{thumbnail} if $verbose;
     make_path(dirname($img->{thumbnail}));
     system($img->{thumbnail_command},
            $img->{source},
@@ -324,55 +308,17 @@ sub update_thumbnail {
        );
 }
 
-=item B<update_preview>(I<$album>[, I<$parent>])
+=item B<update_album>(I<$album>)
 
-An album preview consists of random selection of a configurable number
-of the album's images, composited together. This function updates the
-preview thumbnail, but only if one doesn't exist already.
+Given an $album node, generates an album preview image and the album's C<index.html> after sorting the album's images according to Exif date. Like the update_image() function, it only operates if an update is needed.
 
 =cut
 
-sub update_preview {
+sub update_album {
     my $album = shift;
     my $parent = shift; # optional
-    return if $album->{unlisted};
-    return if -f $album->{thumbnail};
-
-    my @images = select_images($album, $parent);
-    my $size = scalar @images;
-    if ($size < 3) {
-        say "WARNING: Not enough images in '$album->{name}' to create a preview (minimum is 3)";
-        return;
-    }
-    elsif ($size < $album->{preview}) {
-        say "WARNING: Only $size preview images available for '$album->{name}'" unless $silent;
-        $album->{preview} = $size;
-    }
-
-    # Round the number of preview images down to 3, 6, or 9
-    $album->{preview}-- until grep {$_ == $album->{preview}} (3, 6, 9);
-
-    # Shuffle the list and pick N preview images
-    @images = @{[shuffle @images]}[0..($album->{preview})-1];
-
-    say "Creating album preview containing $album->{preview} images..." unless $silent;
-    make_path(dirname($album->{thumbnail}));
-    system($album->{preview_command},
-           @images,
-           $album->{thumbnail},
-       );
-}
-
-=item B<update_index>(I<$album>)
-
-First checks if regeneration of the $album's C<index.html> is needed by calling update_needed(). If so, it sorts the album's items by date and renders C<index.html> at the album's destination.
-
-=cut
-
-sub update_index {
-    my $album = shift;
     return unless update_needed($album);
-    say "$album->{url}index.html" unless $silent;
+    create_preview($album, $parent) unless $album->{unlisted};
 
     # Calculate the path to the static resources, relative
     # to the current page (relative pathnames ensure that
@@ -401,33 +347,88 @@ sub update_index {
         } @{$album->{items}};
     }
 
+    say $album->{url} . "index.html";
     $tt->process($album->{template}, $album, $album->{index})
         || die $tt->error();
 }
 
-=item B<update_needed>(I<$album>)
+=item B<update_needed>(I<$item>)
 
-Checks if the $album's C<index.html> should be updated. It returns true if any of the album's thumbnails has been regenerated since the last time the index was created. Also returns true if the album's C<photog.ini> file has been modified. Otherwise returns false.
+The argument $item can either be an album hash or an image hash. The
+function returns true if the album/image's source is newer than the
+destination, or if the destination doesn't exist. In case of albums,
+it also returns true if the config file has changed. Otherwise it
+returns false.
 
 =cut
 
 sub update_needed {
-    my $album = shift;
+    my $item = shift;
 
-    if (not -f $album->{index}) {
-        return 1;
+    if ($item->{type} eq 'image') {
+        if (not -f $item->{destination}) {
+            return 1;
+        }
+        elsif (not -f $item->{thumbnail}) {
+            return 1;
+        }
+        elsif (is_newer($item->{source}, $item->{destination})) {
+            return 1;
+        }
     }
-    elsif (is_newer($album->{config}, $album->{index})) {
-        return 1;
-    }
-    else {
-        for (@{$album->{items}}) {
-            if (is_newer($_->{thumbnail}, $album->{index})) {
-                return 1;
+    elsif ($item->{type} eq 'album') {
+        if (not -f $item->{index}) {
+            return 1;
+        }
+        elsif (not -f $item->{thumbnail} and not $item->{unlisted}) {
+            return 1;
+        }
+        elsif (is_newer($item->{config}, $item->{index})) {
+            return 1;
+        }
+        else {
+            for (@{$item->{items}}) {
+                if (is_newer($_->{thumbnail}, $item->{index})) {
+                    return 1;
+                }
             }
         }
     }
     return 0;
+}
+
+=item B<create_preview>(I<$album>[, I<$parent>])
+
+Creates an album preview image by making a random selection of the album's images and calling the C<photog-preview> command. The optional $parent argument is passed to the select_images() function (see below).
+
+=cut
+
+sub create_preview {
+    my $album = shift;
+    my $parent = shift; # optional
+
+    my @images = select_images($album, $parent);
+    my $size = scalar @images;
+    if ($size < 3) {
+        say "WARNING: Not enough images available in '$album->{name}' to create a preview";
+        return;
+    }
+    elsif ($size < $album->{preview}) {
+        say "WARNING: Only $size preview images available for '$album->{name}' ($album->{preview} requested)" unless $silent;
+        $album->{preview} = $size;
+    }
+
+    # Round the number of preview images down to 3, 6, or 9
+    $album->{preview}-- until grep {$_ == $album->{preview}} (3, 6, 9);
+
+    # Shuffle the list and pick N preview images
+    @images = @{[shuffle @images]}[0..($album->{preview})-1];
+
+    make_path(dirname($album->{thumbnail}));
+    system($album->{preview_command},
+           @images,
+           $album->{thumbnail},
+       );
 }
 
 =item B<select_images>(I<$album>[, I<$parent>])
@@ -553,8 +554,8 @@ sub strip_suffix {
 =item B<is_newer>(I<$file1>, I<$file2>)
 
 Determines the modification times of $file1 and $file2 (which should
-pathnames). It both files exist and $file1 is newer than $file2, it
-returns true.
+pathnames). It both files exist and $file1 is newer than $file2,
+it returns true. Beware: if both files are of the same age, $file1 is not newer than $file2.
 
 =cut
 
@@ -569,7 +570,9 @@ sub is_newer {
 
 =item B<exifdate>(I<$file>)
 
-Extracts the value of the Exif tag C<DateTimeOriginal> from the provided image path and returns it. Prints a warning and returns of the Exif tag could not be found.
+Extracts the value of the Exif tag C<DateTimeOriginal> from the
+provided image path, converts it to ISO 8601 format, and returns
+it. Prints a warning and returns 0 if the Exif tag could not be found.
 
 =cut
 
@@ -578,9 +581,11 @@ sub exifdate {
     my $exif = ImageInfo($file, 'DateTimeOriginal');
     if (not $exif->{DateTimeOriginal}) {
         say "WARNING: Exif tag 'DateTimeOriginal' missing from '$file'";
-        return;
+        return 0;
     }
-    return $exif->{DateTimeOriginal};
+    my ($date, $time) = split(/ /, $exif->{DateTimeOriginal});
+    $date =~ s/:/-/g;
+    return $date . 'T' . $time;
 }
 
 =back
