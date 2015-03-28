@@ -119,9 +119,9 @@ sub create_img {
     $img->{destination} = catfile($parent->{destination}, $img->{url});
     $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
     $img->{watermark}   = $parent->{watermark};
-    $img->{scale-command}     = $parent->{scale-command};
-    $img->{watermark-command} = $parent->{watermark-command};
-    $img->{thumbnail-command} = $parent->{thumbnail-command};
+    $img->{scale_command}     = $parent->{scale_command};
+    $img->{watermark_command} = $parent->{watermark_command};
+    $img->{thumbnail_command} = $parent->{thumbnail_command};
     return $img;
 }
 
@@ -208,17 +208,17 @@ sub configure {
     $album->{oblivious}
         ||= $parent->{oblivious}
         || 0;
-    $album->{scale-command}
-        ||= $parent->{scale-command}
+    $album->{scale_command}
+        ||= $parent->{scale_command}
         || 'photog-scale';
-    $album->{watermark-command}
-        ||= $parent->{watermark-command}
+    $album->{watermark_command}
+        ||= $parent->{watermark_command}
         || 'photog-watermark';
-    $album->{thumbnail-command}
-        ||= $parent->{thumbnail-command}
+    $album->{thumbnail_command}
+        ||= $parent->{thumbnail_command}
         || 'photog-thumbnail';
-    $album->{preview-command}
-        ||= $parent->{preview-command}
+    $album->{preview_command}
+        ||= $parent->{preview_command}
         || 'photog-preview';
 
     return $album;

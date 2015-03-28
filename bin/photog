@@ -148,25 +148,25 @@ files are required. If C<true>, Photog! will only consider a
 subdirectory an album when it contains a C<photog.ini> file, even if
 the file is empty. Defaults to C<false>.
 
-=item B<scale-command>
+=item B<scale_command>
 
 The path to a command to do the image scaling. The command will
 receive 2 arguments: The source image path and the destination image
 path. The default is C<photog-scale>.
 
-=item B<watermark-command>
+=item B<watermark_command>
 
 The command that does the image watermarking. The command will receive
 3 arguments: Paths to the source image, the watermark image, and the
 destination image. Default is C<photog-watermark>.
 
-=item B<thumbnail-command>
+=item B<thumbnail_command>
 
 The path to a command to generate an image thumbnail. Receives 2
 arguments: The source image path and the thumbnail destination
 path. The default is C<photog-thumbnail>.
 
-=item B<preview-command>
+=item B<preview_command>
 
 The command that generates album previews. It will receive paths to
 the source images' thumbnails as its arguments, and the path to a
