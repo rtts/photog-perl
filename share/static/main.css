@@ -108,6 +108,15 @@ html {
   padding: 1em;
 }
 
+#footer p {
+  font-size: 1.25em;
+  letter-spacing: 0.5px;
+  line-height: 160%;
+  hyphens: auto;
+  margin: 0;
+  padding-bottom: 1em;
+}
+
 #footer a {
   color: #aaa;
 }
