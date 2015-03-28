@@ -2,21 +2,24 @@ package Photography::Website;
 use strict;
 use warnings;
 use feature 'say';
-use Image::Size           qw(imgsize);
+
+use DateTime;
+use File::Copy            qw(copy);
 use File::Path            qw(make_path);
 use File::Basename        qw(basename dirname);
-use File::ShareDir        qw(dist_file);
+use File::ShareDir        qw(dist_file dist_dir);
 use File::Spec::Functions qw(catfile);
+use Image::Size           qw(imgsize);
+use Image::ExifTool       qw(ImageInfo);
 use Config::General       qw(ParseConfig);
 use String::Random        qw(random_regex);
 use Array::Utils          qw(array_minus);
-use Image::ExifTool       qw(ImageInfo);
 use Algorithm::Numerical::Shuffle qw(shuffle);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
-our $silent = 0;
-our $verbose = 0;
-my $CONFIG_FILE = "photog.ini";
+our $silent      = 0;
+our $verbose     = 0;
+my  $CONFIG_FILE = "photog.ini";
 
 =head1 NAME
 
@@ -181,6 +184,8 @@ sub configure {
         ||= catfile($album->{destination}, "thumbnails/all.jpg");
     $album->{unlisted}
         ||= ($album == $parent);
+    $album->{date}
+        ||= DateTime->from_epoch(epoch => (stat $source)[9]);
 
     # Regular parameters - Set in the config file, propagated from
     # parent, or a default value.
@@ -244,6 +249,14 @@ sub generate {
     my $parent = shift; # optional;
     my $update_needed = 0;
 
+    # Copy static files to destination root
+    if (not $parent) {
+        for (list(catfile(dist_dir('Photog'), 'static'))) {
+            copy($_, $album->{destination}) or die "$_: $!";
+        }
+    }
+
+    # Recursively update image files and album pages
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
             update_image($item) and $update_needed = 1;
@@ -278,14 +291,14 @@ sub update_image {
     say $img->{url} unless $silent;
     make_path(dirname($img->{destination}));
     if ($img->{watermark}) {
-        system('photog-watermark',
+        system($img->{watermark_command},
                $img->{source},
                $img->{watermark},
                $img->{destination},
            );
     }
     else {
-        system('photog-scale',
+        system($img->{scale_command},
                $img->{source},
                $img->{destination},
            );
@@ -306,9 +319,9 @@ sub update_thumbnail {
     my $img = shift;
     return if is_newer($img->{thumbnail}, $img->{source});
 
-    say $img->{thumbnail} unless $silent;
+    say $img->{thumbnail} if $verbose;
     make_path(dirname($img->{thumbnail}));
-    system('photog-thumbnail',
+    system($img->{thumbnail_command},
            $img->{source},
            $img->{thumbnail},
        );
@@ -332,11 +345,12 @@ sub update_preview {
     my @images = select_images($album, $parent);
     my $size = scalar @images;
     if ($size < 3) {
-        die "ERROR: Not enough images in $album->{name} to create a preview (minimum is 3)";
+        say "WARNING: Not enough images in '$album->{name}' to create a preview (minimum is 3)";
+        return;
     }
     elsif ($size < $album->{preview}) {
-        $album->{preview} = $size;
         say "WARNING: Only $size preview images available for '$album->{name}'" unless $silent;
+        $album->{preview} = $size;
     }
 
     # Round the number of preview images down to 3, 6, or 9
@@ -345,8 +359,9 @@ sub update_preview {
     # Shuffle the list and pick N preview images
     @images = @{[shuffle @images]}[0..($album->{preview})-1];
 
+    say "Creating album preview containing $album->{preview} images..." unless $silent;
     make_path(dirname($album->{thumbnail}));
-    system('photog-preview',
+    system($album->{preview_command},
            @images,
            $album->{thumbnail},
        );
@@ -355,13 +370,14 @@ sub update_preview {
 
 =item B<update_index>(I<$album>)
 
-Renders the C<index.html> at the $album's destination. Returns nothing.
+Renders the C<index.html> at the $album's destination, after sorting the album's items by date. Returns nothing.
 
 =cut
 
 sub update_index {
     my $album = shift;
     my $index = catfile($album->{destination}, "index.html");
+    say "$album->{url}index.html" unless $silent;
 
     # Calculate the path to the static resources, relative
     # to the current page (relative pathnames ensure that
@@ -371,8 +387,25 @@ sub update_index {
     $rel =~ s:^/::;
     $album->{static} = sub { "$rel$_[0]" };
 
+    # Calculate and store image sizes and dates
+    for (grep {$_->{type} eq 'image'} @{$album->{items}}) {
+        ($_->{width}, $_->{height}) = imgsize($_->{thumbnail});
+        $_->{date} = exifdate($_->{source});
+    }
+
+    # Sort
+    if ($album->{sort} eq 'ascending') {
+        @{$album->{items}} = sort {
+            $a->{date} cmp $b->{date}
+        } @{$album->{items}};
+    }
+    elsif ($album->{sort} eq 'descending') {
+        @{$album->{items}} = sort {
+            $b->{date} cmp $a->{date}
+        } @{$album->{items}};
+    }
+
     # Render index.html
-    say "$album->{url}index.html" unless $silent;
     $tt->process($album->{template}, $album, $index)
         || die $tt->error();
 }
@@ -399,7 +432,7 @@ sub select_images {
         @images = grep {$exclude{$_->{href}}} @images;
     }
 
-    return map {$_->{source}} @images;
+    return map {$_->{thumbnail}} @images;
 }
 
 =back
@@ -519,102 +552,23 @@ sub has_index {
     return -f $index;
 }
 
-1;
-__END__
+=item B<exifdate>(I<$file>)
 
-# Returns some EXIF data of an image in a hash reference
-sub exif {
+Extracts the value of the Exif tag C<DateTimeOriginal> from the provided image path and returns it. Prints a warning and returns of the Exif tag could not be found.
+
+=cut
+
+sub exifdate {
     my $file = shift or die;
-    my $data = {};
-    my $exif = ImageInfo($file, 'MakerNotes', 'Artist', 'Copyright', 'DateTimeOriginal', 'ExposureTime', 'FNumber', 'ISO', 'FocalLength');
-    if (not %{$exif}) {
-        die "EXIF info missing for $file, aborting...\n";
+    my $exif = ImageInfo($file, 'DateTimeOriginal');
+    if (not $exif->{DateTimeOriginal}) {
+        say "WARNING: Exif tag 'DateTimeOriginal' missing from '$file'";
+        return;
     }
-
-    # Check for and manipulate MakerNote
-    my $makerkey;
-    for (keys %{$exif}) {
-        if (/makernote/i) {
-            $makerkey = $_;
-            last;
-        }
-    }
-    unless ($makerkey) {
-        say "WARNING: MakerNote missing in EXIF data of $file" if $verbose;
-        if ($manipulate_exif) {
-            my $rawfile = $file;
-            $rawfile =~ s|\.jpg$||;
-            for my $ext ('dng', 'DNG', 'nef', 'NEF', 'cr2', 'CR2', 'crw', 'CRW') {
-                if (-f "$rawfile.$ext") {
-                    say "Copying EXIF info from $rawfile.$ext to $file" unless $silent;
-                    system "exiftool -tagsfromfile \"$rawfile.$ext\" \"$file\" > /dev/null";
-                    unlink $file . "_original";
-
-                    # The original has been modified, so call process() again
-                    # process $file;
-                    last;
-                }
-            }
-        }
-    }
-    else {
-        say "MakerNote present in $file ($makerkey)" if $verbose;
-    }
-
-    # Check for and manipulate Artist
-    unless ($exif->{Artist}) {
-        say "WARNING: Artist missing in EXIF data of $file" if $verbose;
-        if ($manipulate_exif) {
-            my $choice = 0;
-            if ($#artists) {
-                do {
-                    say "\nPlease choose between the following artists for $file:";
-                    say $_+1 . ") $artists[$_]" for 0..$#artists;
-                    $choice = (ask "Your choice:");
-                } until ($choice =~ /\d+/ and $artists[$choice - 1]);
-                $choice -= 1;
-            }
-            system "exiftool -m -artist=\"$artists[$choice]\" -copyright=\"$copyright\" \"$file\" > /dev/null";
-            unlink $file . "_original";
-
-            # The original has been modified, so call process() again
-            # process $file;
-        }
-    }
-    else {
-        say "Artist \"$exif->{Artist}\" present in $file" if $verbose;
-    }
-
-    $data->{date} = $exif->{DateTimeOriginal} or 0;
-    # $data->{settings} = "ISO $exif->{ISO}, $exif->{FocalLength}, f/$exif->{FNumber}, $exif->{ExposureTime}sec";
-    my $artist = $exif->{Artist};
-    return $data unless $artist;
-    if ($artist =~ /Jaap Joris Vens/) {
-        $artist = "Jaap Joris";
-    }
-    if ($artist =~ /Jolanda Verhoef/) {
-        $artist = "Jolanda";
-    }
-    $data->{settings} = "<i>by $artist</i>";
-    return $data;
+    return $exif->{DateTimeOriginal};
 }
 
-# Extracts the date from a directory name in EXIF format
-sub dirdate {
-    my $dir = shift or die;
-    my $name = name $dir;
-    my $date;
-    if ($name =~ /($date_regex)/) {
-        $date = $1;
-        $date =~ s/-/:/g;
-        $date .= " 00:00:00";
-    }
-    else {
-        # todo: Return the created date as a fallback
-        $date = '0000:00:00 00:00:000';
-    }
-    return $date;
-}
+=back
 
 =head1 SEE ALSO
 
