@@ -4,15 +4,12 @@
     <title>[% title %]</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!--[if lt IE 9]>
-    <script src="[% static('html5.min.js') %]"></script>
-    <![endif]-->
     <link rel="stylesheet" type="text/css" href="[% static('main.css') %]">
     <link rel="stylesheet" href="[% static('magnific-popup.css') %]">
   </head>
   <body>
 
-    <header>
+    <div id="header">
       <h1><a href="[% static('index.html') %]">[% title %]</a></h1>
       <nav>
         <a href="/">home</a>
@@ -20,9 +17,9 @@
         <a href="/contact.html">contact</a>
         <a href="mailto:info@superformosa.nl">info@superformosa.nl</a>
       </nav>
-    </header>
+    </div>
 
-    <div id="gallery">
+    <div id="album">
       [% FOREACH item IN items %]
       [% IF item.type == 'image' %]
       [% IF fullscreen %]
@@ -38,11 +35,11 @@
       [% END %]
     </div>
 
-    <footer>
+    <div id="footer">
       <p>
         [% copyright %]
       </p>
-    </footer>
+    </div>
 
     <script src="[% static('jquery-1.7.2.min.js') %]"></script>
     <script src="[% static('jquery.magnific-popup.js') %]"></script>

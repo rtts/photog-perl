@@ -119,7 +119,7 @@ sub create_img {
     $img->{href}   = $filename;
     $img->{src}    = "thumbnails/$filename";
     $img->{source} = $source;
-    $img->{destination} = catfile($parent->{destination}, $img->{url});
+    $img->{destination} = catfile($parent->{root}, $img->{url});
     $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
     $img->{watermark}   = $parent->{watermark};
     $img->{scale_command}     = $parent->{scale_command};
@@ -263,7 +263,7 @@ sub generate {
             update_thumbnail($item) and $update_needed = 1;
         }
         elsif ($item->{type} eq 'album') {
-            generate($item, $parent) and $update_needed = 1;
+            generate($item, $album) and $update_needed = 1;
         }
     }
     update_preview($album, $parent) and $update_needed = 1;
@@ -388,9 +388,11 @@ sub update_index {
     $album->{static} = sub { "$rel$_[0]" };
 
     # Calculate and store image sizes and dates
-    for (grep {$_->{type} eq 'image'} @{$album->{items}}) {
+    for (@{$album->{items}}) {
         ($_->{width}, $_->{height}) = imgsize($_->{thumbnail});
-        $_->{date} = exifdate($_->{source});
+        if ($_->{type} eq 'image') {
+            $_->{date} = exifdate($_->{source});
+        }
     }
 
     # Sort
