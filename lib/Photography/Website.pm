@@ -39,22 +39,23 @@ Photography::Website
 
 The Photography::Website module contains the core of the Photog!
 photography website generator. If you're looking to generate websites,
-please refer to the L<photog(3pm)> manpage for instructions and
+please refer to the L<photog(3)> manpage for instructions and
 configuration options. If you want to learn about the internals of
 Photog!, read on.
 
 A photography website is generated in two stages. The first stage
 searches the source directory tree for images and optional
-C<photog.ini> files, and processes them into a datastructure of nested
+C<photog.ini> files, and processes them into a data structure of nested
 albums. An album is simply a hash of configuration variables one of
 which references a list of further hashes. This stage is kicked off by
 the create_album() function.
 
-The second stage loops through this data structure, compares all
-the sources with their destinations, and (re)generates them if
-needed. It builds a complete website with nested albums of photographs
-that mirrors the structure of the source image directory. This process
-is started with the generate() function.
+The second stage loops through this data structure, compares all the
+sources with their destinations, and (re)generates them if needed. It
+builds a website with nested album pages than contain image thubmnails
+and album preview thumbnails. The structure of album pages mirrors the
+structure of the source image directory. This process is started with
+the generate() function.
 
 =head1 FUNCTIONS
 
@@ -71,7 +72,7 @@ website resources. Third, simple helper functions.
 
 The main entry point for creating a website structure. $source should
 be a directory name, $parent is only used when this function is called
-recursively. Returns an album that with nested sub-albums that represents
+recursively. Returns an album with nested sub-albums that represents
 the source directory tree.
 
 =cut
@@ -107,15 +108,20 @@ sub create_img {
     return if not is_image($source);
     my $img = {};
     my $filename = basename($source);
-    $img->{type}        = 'image';
-    $img->{name}        = strip_suffix($filename);
-    $img->{url}         = $parent->{url} . $filename;
-    $img->{href}        = $filename;
-    $img->{src}         = "thumbnails/$filename";
-    $img->{source}      = $source;
+
+    # Populate image hash
+    $img->{type}   = 'image';
+    $img->{name}   = strip_suffix($filename);
+    $img->{url}    = $parent->{url} . $filename;
+    $img->{href}   = $filename;
+    $img->{src}    = "thumbnails/$filename";
+    $img->{source} = $source;
     $img->{destination} = catfile($parent->{destination}, $img->{url});
     $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
     $img->{watermark}   = $parent->{watermark};
+    $img->{scale-command}     = $parent->{scale-command};
+    $img->{watermark-command} = $parent->{watermark-command};
+    $img->{thumbnail-command} = $parent->{thumbnail-command};
     return $img;
 }
 
@@ -152,34 +158,68 @@ sub configure {
         save_config($album, $source);
     }
 
-    # FIXED PARAMETERS
-    # These cannot be changed from a config file.
+    # Fixed parameters - These cannot be changed from a config file.
     $album->{type}   = 'album';
     $album->{source} = $source;
     $album->{name}   = basename($source);
     $album->{root}   = $parent->{root} || $parent->{destination} || die
         "ERROR: Destination not specified";
 
-    # SPECIAL PARAMETERS
-    # Either set in the config file or calculated dynamically
-    $album->{slug}        ||= basename($source);
-    $album->{url}         ||= $parent->{url} ? "$parent->{url}$album->{slug}/": "/";
-    $album->{href}        ||= $album->{slug} . '/';
-    $album->{src}         ||= $album->{href} . "thumbnails/all.jpg";
-    $album->{destination} ||= catfile($album->{root}, substr($album->{url}, 1));
-    $album->{thumbnail}   ||= catfile($album->{destination}, "thumbnails/all.jpg");
-    $album->{unlisted}    ||= ($album == $parent);
+    # Special parameters - Either set in the config file or
+    # calculated dynamically
+    $album->{slug}
+        ||= basename($source);
+    $album->{url}
+        ||= $parent->{url} ? "$parent->{url}$album->{slug}/": "/";
+    $album->{href}
+        ||= $album->{slug} . '/';
+    $album->{src}
+        ||= $album->{href} . "thumbnails/all.jpg";
+    $album->{destination}
+        ||= catfile($album->{root}, substr($album->{url}, 1));
+    $album->{thumbnail}
+        ||= catfile($album->{destination}, "thumbnails/all.jpg");
+    $album->{unlisted}
+        ||= ($album == $parent);
 
-    # REGULAR PARAMETERS
-    # Set in the config file, propagated from parent, or a default value.
-    $album->{title}      ||= $parent->{title}      || "My Photography Website";
-    $album->{copyright}  ||= $parent->{copyright}  || '';
-    $album->{template}   ||= $parent->{template}   || dist_file('Photog', 'template.html');
-    $album->{preview}    ||= $parent->{preview}    || 9;
-    $album->{watermark}  ||= $parent->{watermark}  || '';
-    $album->{sort}       ||= $parent->{sort}       || 'descending';
-    $album->{fullscreen} ||= $parent->{fullscreen} || 1;
-    $album->{oblivious}  ||= $parent->{oblivious}  || 0;
+    # Regular parameters - Set in the config file, propagated from
+    # parent, or a default value.
+    $album->{title}
+        ||= $parent->{title}
+        || "My Photography Website";
+    $album->{copyright}
+        ||= $parent->{copyright}
+        || '';
+    $album->{template}
+        ||= $parent->{template}
+        || dist_file('Photog', 'template.html');
+    $album->{preview}
+        ||= $parent->{preview}
+        || 9;
+    $album->{watermark}
+        ||= $parent->{watermark}
+        || '';
+    $album->{sort}
+        ||= $parent->{sort}
+        || 'descending';
+    $album->{fullscreen}
+        ||= $parent->{fullscreen}
+        || 1;
+    $album->{oblivious}
+        ||= $parent->{oblivious}
+        || 0;
+    $album->{scale-command}
+        ||= $parent->{scale-command}
+        || 'photog-scale';
+    $album->{watermark-command}
+        ||= $parent->{watermark-command}
+        || 'photog-watermark';
+    $album->{thumbnail-command}
+        ||= $parent->{thumbnail-command}
+        || 'photog-thumbnail';
+    $album->{preview-command}
+        ||= $parent->{preview-command}
+        || 'photog-preview';
 
     return $album;
 }
@@ -209,7 +249,7 @@ sub generate {
             update_image($item) and $update_needed = 1;
             update_thumbnail($item) and $update_needed = 1;
         }
-        if ($item->{type} eq 'album') {
+        elsif ($item->{type} eq 'album') {
             generate($item, $parent) and $update_needed = 1;
         }
     }
@@ -385,7 +425,7 @@ sub get_config {
     return 0;
 }
 
-=item B<save_config>(I<config>, I<$directory>)
+=item B<save_config>(I<$config>, I<$directory>)
 
 The other way around, saves the $config hash reference to the file
 photog.ini inside the $directory. Returns nothing.
@@ -583,7 +623,7 @@ L<photog(3pm)|photog>
 =head1 AUTHOR
 
 Photography::Website was written by Jaap Joris Vens <jj@rtts.eu>, and is
-used on his personal photography website http://www.superformosa.nl/
+used to create his personal photography website at http://www.superformosa.nl/
 
 =cut
 
