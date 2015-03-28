@@ -53,19 +53,19 @@ value> directives. Lines starting with a C<#> are ignored.
 =item B<title>
 
 In the default template, the title appears at the top of the page. The
-default value is "My Photography Website". Please set this to for
-instance your own name. You can also override it for specific albums
-to show an album name.
+default value is "My Photography Website". Please set this to
+something more catchy. You can also override it for specific albums to
+show an album name.
 
 =item B<destination>
 
 The destination directory. This variable has no default. It must be
 specified as a command line argument or in the root configuration
-file. Although possible, overriding this option for subdirectories results in broken URLs. Use the B<url> option instead.
+file. Although possible, overriding this option for subdirectories is not recommended. Use the B<url> option instead.
 
 =item B<slug>
 
-A slug is the part of the URL that identifies an album, e.g. C<www.example.com/slug/>. The default value is the directory's name, so be careful not to use characters in directory names that are not allowed in URLs, like space. Or, simply override this value to choose an appropriate URL for each album.
+A slug is the part of the URL that identifies an album, e.g. C<www.example.com/slug/>. The default value is the directory's name, so be careful not to use characters in directory names that are not allowed in URLs, like spaces. Or, simply override this value to choose an appropriate URL for each album.
 
 =item B<url>
 
@@ -81,8 +81,8 @@ bottom of the page. The default value is empty.
 =item B<template>
 
 Path to an HTML file containing directives in
-L<Template::Toolkit(3pm)> syntax. By default, Photog! uses the file
-C<index.template> in this module's C<static> directory.
+L<Template::Toolkit(3pm)> syntax. The default is the file
+C<template.html> that's included with Photog!. Use it as a starting point to create your own template!
 
 =item B<preview>
 
@@ -90,7 +90,7 @@ An album preview is a thumbnail image of the album that contains a number of sma
 
 =item B<watermark>
 
-The path to a transparent PNG file that will be used to watermark all full-size images in an album. The command C<photog-watermark> is called to do the actual watermarking, and it currently places the watermark in the lower right corner. The default is to not watermark website images.
+The path to a transparent PNG file that will be used to watermark all full-sized images in an album. The command C<photog-watermark> is called to do the actual watermarking, and it currently places the watermark in the lower right corner. The default is to not watermark website images.
 
 =item B<sort>
 
@@ -108,7 +108,7 @@ haven't paid yet. Defaults to C<true>.
 
 The ISO 8601 date and optionally time of this album. This is used when
 sorting items chronologically. The default is the directory's
-modification date.
+modification date. The default template never actually shows dates, so it can also be used to determine the placement of album previews on the page.
 
 =item B<unlisted>
 
