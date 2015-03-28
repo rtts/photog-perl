@@ -177,8 +177,8 @@ request previews of 3, 6, or 9 images.
 
 =head1 ADDIIIONAL COMMANDS
 
-Photog! calls the commands B<photog-scale>, B<photog-watermark>,
-B<photog-thumbnail>, and B<photog-preview> to generate scaled,
+Photog! calls the commands C<photog-scale>, C<photog-watermark>,
+C<photog-thumbnail>, and C<photog-preview> to generate scaled,
 watermarked, thumbnail and preview images. These commands are simple
 shell scripts that have been installed to the same path as the
 C<photog> command. They call ImageMagick to do the actual image
