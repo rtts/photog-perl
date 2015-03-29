@@ -202,9 +202,6 @@ his personal photography website at http://www.superformosa.nl/
 
 ######################################################################
 
-die "ERROR: ImageMagick is not installed\n"
-    unless `convert --version` =~ /ImageMagick/;
-
 my $source = getcwd();
 my $destination;
 
