@@ -5,7 +5,7 @@ use Cwd;
 use IPC::Cmd 'can_run';
 use Photography::Website;
 
-die "
+die <<EOM
 ERROR: ImageMagick is not installed. Please install it in order \
 to use Photog!, preferably using your operating system's package \
 manager. Try one of the following commands:
@@ -14,8 +14,8 @@ manager. Try one of the following commands:
     yum install ImageMagick
     pacman -S imagemagick
     brew install imagemagick
-
-" unless can_run('convert') and can_run('composite');
+EOM
+    unless can_run('convert') and can_run('composite');
 
 =head1 NAME
 
@@ -241,7 +241,13 @@ if (not -f "$source/photog.ini") {
         close $fh;
     }
     else {
-        die "Please specifiy a destination for your photography website. You can do this either as a command-line argument or in the configuration file 'photog.ini'. See 'man photog' for more information.\n";
+        die "
+ERROR: No destination specified. Please specifiy a destination for \
+your photography website. You can do this either as a command-line \
+argument or in the configuration file 'photog.ini'. See 'man photog' \
+for more information.
+";
+
     }
 }
 
