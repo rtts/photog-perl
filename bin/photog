@@ -7,7 +7,9 @@ use Photography::Website;
 
 die <<EOM
 
-ERROR: ImageMagick is not installed. Please install it in order to use Photog!, preferably using your operating system's package manager. Try one of the following commands:
+ERROR: ImageMagick is not installed. Please install it in order to use
+Photog!, preferably using your operating system's package manager. Try
+one of the following commands:
 
     apt-get install imagemagick
     yum install ImageMagick
@@ -241,9 +243,15 @@ if (not -f "$source/photog.ini") {
         close $fh;
     }
     else {
-        die "
-ERROR: No destination specified. Please specifiy a destination for your photography website. You can do this either as a command-line argument or in the configuration file 'photog.ini'. See 'man photog' for more information.
-";
+        die <<EOM
+
+ERROR: No destination specified. Please specifiy a destination for
+your photography website. You can do this either as a command-line
+argument or in the configuration file 'photog.ini'. See 'man photog'
+for more information.
+
+EOM
+            ;
     }
 }
 
