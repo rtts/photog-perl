@@ -5,7 +5,8 @@ use Cwd;
 use IPC::Cmd 'can_run';
 use Photography::Website;
 
-die "ERROR: ImageMagick is not installed. Please install it in order \
+die "
+ERROR: ImageMagick is not installed. Please install it in order \
 to use Photog!, preferably using your operating system's package \
 manager. Try one of the following commands:
 
