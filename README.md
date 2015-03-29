@@ -5,46 +5,43 @@ website with nested albums of chronologically sorted photographs. It
 is created by [Jaap Joris Vens](http://rtts.eu/about/) who uses it for
 [his personal photography website](http://www.superformosa.nl/).
 
-##Installation instructions
+## Installation
 
-First, make sure you have [ImageMagick](http://imagemagick.org/)
-installed and that the `convert` command is available on the system PATH.
-You can test this by running:
+### Prerequisites
 
-    $ convert --version
-    Version: ImageMagick 6.8.9-9 Q16 x86_64 2015-01-05 http://www.imagemagick.org
-    Copyright: Copyright (C) 1999-2014 ImageMagick Studio LLC
+* [ImageMagick](http://imagemagick.org/): It's best to install this
+  using your operating systems package manager, e.g.,
+  `[apt-get|yum|brew|pacman|apt-cyg] install imagemagick`.
 
-Now Photog! can be installed like any other Perl module. And like any
-other Perl module, there's more than one way to do it:
+* [Cpanminus](https://github.com/miyagawa/cpanminus): This is [the
+  recommended way](http://www.cpan.org/modules/INSTALL.html) to
+  install Perl modules. An easy way to install it is to run `curl -L
+  https://cpanmin.us | perl - --sudo App::cpanminus` (or just use your
+  OS package manager again).
 
-###Install as root
+* [local::lib](search.cpan.org/perldoc/local::lib): Only needed if you
+  want to install Photog! without requiring root permissions. Make
+  sure to include `eval "$(perl -Mlocal::lib)"` into your `.bashrc`
+  after installation.
 
-[Download the latest release](https://github.com/rtts/photog/archive/stable.zip),
-then extract the files to a temporary directory. From there, run the
-following commands:
+### Installation - the easy way
+
+    $ cpanm https://github.com/rtts/photog/archive/stable.tar.gz
+
+This will fetch and build all dependencies and install Photog! to your
+`$HOME/perl5` directory. To install Photog! system-wide, prepend `sudo` to
+the above command.
+
+### Installation - the old-fashioned way
 
     $ perl Makefile.PL
     $ make
     $ sudo make install
 
-###Install as local user
+This works like you'd expect, but beware that you'll have to install
+all the dependencies yourself.
 
-To install Perl modules without root privileges, you need
-[local::lib](http://search.cpan.org/perldoc?local::lib). Make sure
-it's installed (e.g. `apt-get install liblocal-lib-perl` or `yum
-install perl-local-lib`) and that you’ve appended the following line
-to you `~/.bashrc`:
-
-    eval "$(perl -Mlocal::lib)"
-
-Now you can install the module by running the following commands:
-
-    $ perl Makefile.PL
-    $ make
-    $ make install
-
-###Install using Dist::Zilla
+### Installation - using Dist::Zilla
 
 This module is maintained using [Dist::Zilla](http://dzil.org/), which
 builds the module distributions and pushes them to the 'releases'
@@ -55,7 +52,7 @@ the original source code (which lives in the 'master' branch):
     $ git checkout master
     $ dzil install
 
-##Running Photog!
+## Running Photog!
 
 After installation, a manpage is available with the following command:
 
