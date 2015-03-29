@@ -2,7 +2,7 @@
 use warnings;
 use strict;
 use Cwd;
-use IPC::Cmd `can_run`;
+use IPC::Cmd 'can_run';
 use Photography::Website;
 
 die "ERROR: ImageMagick is not installed. Please install it in order \
