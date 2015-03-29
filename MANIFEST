@@ -4,13 +4,11 @@ MANIFEST
 META.yml
 Makefile.PL
 README.md
-bin/man.html
 bin/photog
 bin/photog-preview
 bin/photog-scale
 bin/photog-thumbnail
 bin/photog-watermark
-bin/pod2htmd.tmp
 dist.ini
 lib/Photography/Website.pm
 share/static/SourceSansPro-ExtraLight.ttf

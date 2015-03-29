@@ -25,9 +25,7 @@ my %WriteMakefileArgs = (
     "bin/photog-scale",
     "bin/photog",
     "bin/photog-preview",
-    "bin/man.html",
     "bin/photog-watermark",
-    "bin/pod2htmd.tmp",
     "bin/photog-thumbnail"
   ],
   "LICENSE" => "gpl",
