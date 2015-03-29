@@ -1,0 +1,50 @@
+body, html {
+  font-family: Century Gothic, CenturyGothic, AppleGothic, URW Gothic, UWR Gothic L, sans-serif;
+  background: #4e4e4e;
+  color: white;
+  margin: 0;
+  padding: 0; }
+
+h1 {
+  font-weight: normal;
+  text-align: center; }
+
+a {
+  color: white !important; }
+
+a:hover {
+  background: #777; }
+
+header {
+  margin-top: 20px;
+  text-align: center;
+  border-bottom: 2px solid white; }
+  header img {
+    width: 275px;
+    position: relative;
+    bottom: -21px; }
+
+section {
+  margin-top: 5px;
+  border-top: 2px solid white;
+  border-bottom: 2px solid white;
+  padding: 50px; }
+  section h1.tagline {
+    margin-top: 0; }
+  section table {
+    width: 100%;
+    margin-top: 50px; }
+    section table td {
+      vertical-align: top; }
+      section table td img {
+        width: 100%; }
+      section table td #arrow {
+        width: 50px;
+        padding: 20px; }
+
+footer {
+  margin-top: 5px;
+  border-top: 2px solid white;
+  min-height: 100px; }
+
+/*# sourceMappingURL=main.css.map */
