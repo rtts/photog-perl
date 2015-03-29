@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Photog by rtts</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Photog</h1>
+        <p>Photography Website Generator</p>
+
+        <p class="view"><a href="https://github.com/rtts/photog">View the Project on GitHub <small>rtts/photog</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/rtts/photog/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/rtts/photog/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/rtts/photog">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="photog" class="anchor" href="#photog" aria-hidden="true"><span class="octicon octicon-link"></span></a>Photog!</h1>
+
+<p>Photog! turns a directory tree of source images into a photography
+website with nested albums of chronologically sorted photographs. It
+is created by <a href="http://rtts.eu/about/">Jaap Joris Vens</a> who uses it for
+<a href="http://www.superformosa.nl/">his personal photography website</a>.</p>
+
+<h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting started</h2>
+
+<p>Installing Photog! is super-easy thanks to <a href="https://github.com/miyagawa/cpanminus">Cpanminus</a> and <a href="search.cpan.org/perldoc/local::lib">local::lib</a>. Simply run the following command:</p>
+
+<pre><code>$ cpanm https://github.com/rtts/photog/archive/stable.tar.gz
+</code></pre>
+
+<p>Also, make sure you have <a href="http://imagemagick.org/">ImageMagick</a> installed before you start generating websites. More detailed installation instruction can be found in <a href="https://github.com/rtts/photog/blob/stable/README.md">the readme file</a>.</p>
+
+<h2>
+<a id="running-photog" class="anchor" href="#running-photog" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running Photog!</h2>
+
+<p>To generate a photography website using the default settings, simply
+<code>cd</code> to your Pictures directory and execute <code>photog</code> with the
+destination directory as its argument:</p>
+
+<pre><code>cd ~/Pictures
+photog ~/public_html
+</code></pre>
+
+<p>That's it! Your website's main page should now be available in <code>$HOME/public_html/index.html</code>. Go have a look!</p>
+
+<h2>
+<a id="customizing-your-photography-website" class="anchor" href="#customizing-your-photography-website" aria-hidden="true"><span class="octicon octicon-link"></span></a>Customizing your photography website</h2>
+
+<p>The output of Photog! be customized in a number of ways. Please read the manpage which contains all the documentation.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/rtts">rtts</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
