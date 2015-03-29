@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use feature 'say';
 
-use Image::Magick;
 use DateTime;
 use File::Copy            qw(copy);
 use File::Path            qw(make_path);
@@ -311,7 +310,10 @@ sub update_image {
 
 =item B<update_album>(I<$album>)
 
-Given an $album node, generates an album preview image and the album's C<index.html> after sorting the album's images according to Exif date. Like the update_image() function, it only operates if an update is needed.
+Given an $album node, generates an album preview image and the album's
+C<index.html> after sorting the album's images according to Exif
+date. Like the update_image() function, it only operates if an update
+is needed.
 
 =cut
 
@@ -400,7 +402,10 @@ sub update_needed {
 
 =item B<create_preview>(I<$album>[, I<$parent>])
 
-Creates an album preview image by making a random selection of the album's images and calling the C<photog-preview> command. The optional $parent argument is passed to the select_images() function (see below).
+Creates an album preview image by making a random selection of the
+album's images and calling the C<photog-preview> command. The optional
+$parent argument is passed to the select_images() function (see
+below).
 
 =cut
 
@@ -555,8 +560,9 @@ sub strip_suffix {
 =item B<is_newer>(I<$file1>, I<$file2>)
 
 Determines the modification times of $file1 and $file2 (which should
-pathnames). It both files exist and $file1 is newer than $file2,
-it returns true. Beware: if both files are of the same age, $file1 is not newer than $file2.
+pathnames). It both files exist and $file1 is newer than $file2, it
+returns true. Beware: if both files are of the same age, $file1 is not
+newer than $file2.
 
 =cut
 

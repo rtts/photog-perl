@@ -2,7 +2,22 @@
 use warnings;
 use strict;
 use Cwd;
+use IPC::Cmd 'can_run';
 use Photography::Website;
+
+die <<EOM
+
+ERROR: ImageMagick is not installed. Please install it in order to use
+Photog!, preferably using your operating system's package manager. Try
+one of the following commands:
+
+    apt-get install imagemagick
+    yum install ImageMagick
+    pacman -S imagemagick
+    brew install imagemagick
+
+EOM
+    unless can_run('convert') and can_run('composite');
 
 =head1 NAME
 
@@ -89,10 +104,9 @@ bottom of the page. The default value is empty.
 
 =item B<template>
 
-Path to an HTML file containing directives in
-L<Template::Toolkit(3)> syntax. The default is the file
-C<template.html> that's included with Photog!. Use it as a starting
-point to create your own template!
+Path to an HTML file containing directives in Template::Toolkit
+syntax. The default is the file C<template.html> that's included with
+Photog!. Use it as a starting point to create your own template!
 
 =item B<preview>
 
@@ -175,7 +189,7 @@ request previews of 3, 6, or 9 images.
 
 =back
 
-=head1 ADDIIIONAL COMMANDS
+=head1 ADDITIONAL COMMANDS
 
 Photog! calls the commands C<photog-scale>, C<photog-watermark>,
 C<photog-thumbnail>, and C<photog-preview> to generate scaled,
@@ -190,7 +204,7 @@ the configuration file (see directly above).
 
 =head1 SEE ALSO
 
-L<Photography::Website(3)>, the Perl module that takes care of the
+Photography::Website(3), the Perl module that takes care of the
 actual site generation.
 
 =head1 AUTHOR
@@ -229,7 +243,15 @@ if (not -f "$source/photog.ini") {
         close $fh;
     }
     else {
-        die "Please specifiy a destination for your photography website. You can do this either as a command-line argument or in the configuration file 'photog.ini'. See 'man photog' for more information.\n";
+        die <<EOM
+
+ERROR: No destination specified. Please specifiy a destination for
+your photography website. You can do this either as a command-line
+argument or in the configuration file 'photog.ini'. See 'man photog'
+for more information.
+
+EOM
+            ;
     }
 }
 
