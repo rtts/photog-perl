@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use feature 'say';
 
-use Image::Magick;
 use DateTime;
 use File::Copy            qw(copy);
 use File::Path            qw(make_path);

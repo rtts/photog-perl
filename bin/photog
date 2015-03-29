@@ -2,7 +2,19 @@
 use warnings;
 use strict;
 use Cwd;
+use IPC::Cmd `can_run`;
 use Photography::Website;
+
+die "ERROR: ImageMagick is not installed. Please install it in order \
+to use Photog!, preferably using your operating system's package \
+manager. Try one of the following commands:
+
+    apt-get install imagemagick
+    yum install ImageMagick
+    pacman -S imagemagick
+    brew install imagemagick
+
+" unless can_run('convert') and can_run('composite');
 
 =head1 NAME
 
