@@ -241,7 +241,7 @@ if (not -f "$source/photog.ini") {
         close $fh;
     }
     else {
-        die; <<EOM
+        die <<EOM
 
 ERROR: No destination specified. Please specifiy a destination for \
 your photography website. You can do this either as a command-line \
@@ -249,6 +249,7 @@ argument or in the configuration file 'photog.ini'. See 'man photog' \
 for more information.
 
 EOM
+            ;
     }
 }
 
