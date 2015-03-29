@@ -1,0 +1,195 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#OPTIONS">OPTIONS</a></li>
+  <li><a href="#CONFIGURATION">CONFIGURATION</a></li>
+  <li><a href="#ADDITIONAL-COMMANDS">ADDITIONAL COMMANDS</a></li>
+  <li><a href="#SEE-ALSO">SEE ALSO</a></li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Photog! - The Photography Website Generator</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p><b>photog</b> [<i>-q</i>] [<i>-v</i>] [<i>destination</i>]</p>
+
+<p><b>photog-</b>[<b>scale</b>, <b>watermark</b>, <b>thumbnail</b>, <b>preview</b>]</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Photog! turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs. To get started, simply <code>cd</code> to the source directory and call <code>photog</code> with the destination directory as its argument. Example:</p>
+
+<pre><code>    $ cd ~/Pictures
+    $ photog ~/public_html</code></pre>
+
+<p>Upon the first run, Photog! writes the website destination to the file <code>photog.ini</code> inside the current directory. Subsequent runs of the <code>photog</code> command require no arguments, and do nothing unless images inside the source directory tree have changed. Photog! only regenerates the parts of the website that should be updated.</p>
+
+<h1 id="OPTIONS">OPTIONS</h1>
+
+<dl>
+
+<dt id="q"><b>-q</b></dt>
+<dd>
+
+<p>Be less verbose</p>
+
+</dd>
+<dt id="v"><b>-v</b></dt>
+<dd>
+
+<p>Be more verbose</p>
+
+</dd>
+</dl>
+
+<h1 id="CONFIGURATION">CONFIGURATION</h1>
+
+<p>Photog! reads configuration directives from a file named <code>photog.ini</code> inside the current directory. Subdirectories can contain additional configuration files that override certain settings from the root configuration file. Config files consist of a number of <code>variable = value</code> directives. Lines starting with a <code>#</code> are ignored.</p>
+
+<dl>
+
+<dt id="title"><b>title</b></dt>
+<dd>
+
+<p>In the default template, the title appears at the top of the page. The default value is &quot;My Photography Website&quot;. Please set this to something more catchy. You can also override it for specific albums to show an album name.</p>
+
+</dd>
+<dt id="destination"><b>destination</b></dt>
+<dd>
+
+<p>The destination directory. This variable has no default. It must be specified as a command line argument or in the root configuration file. Although possible, overriding this option for subdirectories is not recommended. Use the <b>url</b> option instead.</p>
+
+</dd>
+<dt id="slug"><b>slug</b></dt>
+<dd>
+
+<p>A slug is the part of the URL that identifies an album, e.g. <code>www.example.com/slug/</code>. The default value is the directory&#39;s name, so be careful not to use characters in directory names that are not allowed in URLs, like spaces. Or, simply override this value to choose an appropriate URL for each album.</p>
+
+</dd>
+<dt id="url"><b>url</b></dt>
+<dd>
+
+<p>This option sets an absolute url for the album rather than a slug. This allows the source directories to be differently organized than the destination directories.</p>
+
+</dd>
+<dt id="copyright"><b>copyright</b></dt>
+<dd>
+
+<p>In the default template, the copyright information appears at the bottom of the page. The default value is empty.</p>
+
+</dd>
+<dt id="template"><b>template</b></dt>
+<dd>
+
+<p>Path to an HTML file containing directives in Template::Toolkit syntax. The default is the file <code>template.html</code> that&#39;s included with Photog!. Use it as a starting point to create your own template!</p>
+
+</dd>
+<dt id="preview"><b>preview</b></dt>
+<dd>
+
+<p>An album preview is a thumbnail image of the album that contains a number of smaller images. This option sets the number of preview images for an album. Allowed values are 3, 6, and 9. The default is 9.</p>
+
+</dd>
+<dt id="watermark"><b>watermark</b></dt>
+<dd>
+
+<p>The path to a transparent PNG file that will be used to watermark all full-sized images in an album. The command <code>photog-watermark</code> is called to do the actual watermarking, and it currently places the watermark in the lower right corner. The default is to not watermark website images.</p>
+
+</dd>
+<dt id="sort"><b>sort</b></dt>
+<dd>
+
+<p>Photos are always sorted according to EXIF date. Possible sort orders are: <code>ascending</code> and <code>descending</code>. The default value is <code>descending</code>.</p>
+
+</dd>
+<dt id="fullscreen"><b>fullscreen</b></dt>
+<dd>
+
+<p>A boolean <code>true</code> or <code>false</code> to determine full-screen capability. This prevents access to full-size images by clients who haven&#39;t paid yet. Defaults to <code>true</code>.</p>
+
+</dd>
+<dt id="date"><b>date</b></dt>
+<dd>
+
+<p>The ISO 8601 date and optionally time of this album. This is used when sorting items chronologically. The default is the directory&#39;s modification date. The default template never actually shows dates, so it can also be used to determine the placement of album previews on a page.</p>
+
+</dd>
+<dt id="unlisted"><b>unlisted</b></dt>
+<dd>
+
+<p>A boolean <code>true</code> or <code>false</code> that determines whether the current album will be be unlisted on the parent webpage. The album page remains accessible to people who know the URL. Defaults to <code>false</code>.</p>
+
+</dd>
+<dt id="private"><b>private</b></dt>
+<dd>
+
+<p>When this option is set to <code>true</code>, Photog! will generate a random <b>slug</b> and save it in the album&#39;s <code>photog.ini</code>. This happens only once, because the new <code>photog.ini</code> will have this option unset again. Defaults to <code>false</code>.</p>
+
+</dd>
+<dt id="oblivious"><b>oblivious</b></dt>
+<dd>
+
+<p>A boolean <code>true</code> or <code>false</code> that specifies whether <code>photog.ini</code> files are required. If <code>true</code>, Photog! will only consider a subdirectory an album when it contains a <code>photog.ini</code> file, even if the file is empty. Defaults to <code>false</code>.</p>
+
+</dd>
+<dt id="scale_command"><b>scale_command</b></dt>
+<dd>
+
+<p>The path to a command to do the image scaling. The command will receive 2 arguments: The source image path and the destination image path. The default is <code>photog-scale</code>.</p>
+
+</dd>
+<dt id="watermark_command"><b>watermark_command</b></dt>
+<dd>
+
+<p>The command that does the image watermarking. The command will receive 3 arguments: Paths to the source image, the watermark image, and the destination image. Default is <code>photog-watermark</code>.</p>
+
+</dd>
+<dt id="thumbnail_command"><b>thumbnail_command</b></dt>
+<dd>
+
+<p>The path to a command to generate an image thumbnail. Receives 2 arguments: The source image path and the thumbnail destination path. The default is <code>photog-thumbnail</code>.</p>
+
+</dd>
+<dt id="preview_command"><b>preview_command</b></dt>
+<dd>
+
+<p>The command that generates album previews. It will receive paths to the source images&#39; thumbnails as its arguments, and the path to a destination file as its final argument. Currently, Photog! will only request previews of 3, 6, or 9 images.</p>
+
+</dd>
+</dl>
+
+<h1 id="ADDITIONAL-COMMANDS">ADDITIONAL COMMANDS</h1>
+
+<p>Photog! calls the commands <code>photog-scale</code>, <code>photog-watermark</code>, <code>photog-thumbnail</code>, and <code>photog-preview</code> to generate scaled, watermarked, thumbnail and preview images. These commands are simple shell scripts that have been installed to the same path as the <code>photog</code> command. They call ImageMagick to do the actual image processing. You can also call these commands directly. They have no manpages but they do print out a simple usage instruction when called with no arguments. If you want to change Photog!&#39;s behavior for generating images and thumbnails, you can supply your own commands in the configuration file (see directly above).</p>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>Photography::Website(3), the Perl module that takes care of the actual site generation.</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Photog! was written by Jaap Joris Vens &lt;jj@rtts.eu&gt;, and is used to create his personal photography website at http://www.superformosa.nl/</p>
+
+
+</body>
+
+</html>
+
+
