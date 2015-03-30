@@ -1,0 +1,19 @@
+body {
+  font-family: monospace;
+  background: #333;
+  color: white;
+}
+
+h1, h2, h3 {
+  font-size: 1em;
+  color: #e43;
+}
+
+b {
+  color: #e43;
+}
+
+i {
+  font-style: normal;
+  color: green;
+}
