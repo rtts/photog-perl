@@ -1,0 +1,64 @@
+@font-face {
+  font-family: VT323;
+  font-style: normal;
+  font-weight: 400;
+  src: local('VT323'), local('VT323-Regular'), url(http://fonts.gstatic.com/s/vt323/v7/LfMzj2MWAZU6qzlnp1MNbg.woff) format('woff');
+}
+
+body {
+  font-family: VT323, monospace;
+  background: #222;
+  color: #ccc;
+  font-size: 20px;
+  line-height: 18px;
+}
+
+h1, h2, h3 {
+  font-size: 1em;
+  font-weight: normal;
+  color: #e43;
+  margin-bottom: 0;
+}
+
+#NAME + p {
+  color: white;
+}
+
+p {
+  margin-left: 3em;
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+b {
+  font-weight: normal;
+  color: #e43;
+}
+
+i {
+  font-style: normal;
+  color: #0a0;
+}
+
+code {
+    font-family: VT323, monospace;
+}
+
+dl {
+  margin-top: 0;
+}
+
+dt {
+  margin-left: 3em;
+}
+
+pre {
+  margin-left: 3em;
+  margin-top: 0;
+  color: white;
+}
+
+p code:before, p code:after {
+                 content: "\"";
+                 font-weight: normal;
+}

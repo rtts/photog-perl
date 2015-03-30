@@ -7,9 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
+
     <header>
       <img alt="Photog!" src="photog.svg">
     </header>
+
     <section id="tagline">
       <h1>
         Turn your Pictures folder into a Photography website!
@@ -29,12 +31,50 @@
         </tr>
       </table>
     </section>
+
+    <section id="features">
+      <ul>
+        <li>
+          <h2>Free and Open Source</h2>
+          <p>The source code is freely available under the terms of the GPL.</p>
+        </li>
+        <li>
+          <h2>For Linux, Mac and Windows</h2>
+          <p>It works on every operating system that has Perl and ImageMagick installed.</p>
+        </li>
+        <li>
+          <h2>Fully automated</h2>
+          <p>Generates image thumbnails, watermarked images, album previews, and all the needed HTML files.</p>
+        </li>
+        <li>
+          <h2>Intelligent updating</h2>
+          <p>Keeps the photography website up-to-date by only regenerating the files that changed.</p>
+        </li>
+        <li>
+          <h2>Exif aware</h2>
+          <p>Pictures are sorted in the order they were actually photographed.</p>
+        </li>
+        <li>
+          <h2>Pleasing to the eye</h2>
+          <p>The default template packs images into horizontal rows. When you click on a thumbnail, it seamlessly zooms to full screen.</p>
+        </li>
+        <li>
+          <h2>Highly configurable</h2>
+          <p>Features an intuitive and powerful configuration system, where albums inherit settings from their parent album.</p>
+        </li>
+        <li>
+          <h2>Works out of the box</h2>
+          <p>To create a photography website you only have to type “photog” at the command line.</p>
+        </li>
+      </ul>
+    </section>
+
     <section>
       <h2>
-        Getting started
+        Installation
       </h2>
       <p>
-        Installing Photog! is super easy thanks to <a href="https://github.com/miyagawa/cpanminus">Cpanminus</a> and <a href="search.cpan.org/perldoc/local::lib">local::lib</a>. Simply run the following command:
+        Installing Photog! is super easy thanks to <a href="https://github.com/miyagawa/cpanminus">Cpanminus</a> and <a href="search.cpan.org/perldoc/local::lib">local::lib</a>. The following command will automatically install the latest stable version:
       </p>
       <pre><code>$ cpanm https://github.com/rtts/photog/tarball/stable</code></pre>
       <p>
@@ -49,14 +89,24 @@
 <pre><code>cd ~/Pictures
 photog ~/public_html
 </code></pre>
-      <p>Your website's main page should now be available in the destination directory. Go have a look!</p>
+      <p>Your photography website should now be available in the destination directory. Go have a look!</p>
       <h2>
-        Customization
+        Documentation
       </h2>
       <p>
-        The output of Photog! be customized in a number of ways. Please read the manpage which contains all the documentation.
+        The complete documentation is available as a manual page after installation. Execute the command <code>man photog</code> to read it. Another manual page, <code>man Photography::Website</code>, documents the Perl library that is used by Photog! For your convenience, both manual pages are also reprinted below.
       </p>
     </section>
+
+    <section id="manpages">
+      <div>
+        <iframe src="man1.html" seamless></iframe>
+      </div>
+      <div>
+        <iframe src="man3.html" seamless></iframe>
+      </div>
+    </section>
+
     <footer>
       <a href="https://github.com/rtts/photog" id="github"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
     </footer>
