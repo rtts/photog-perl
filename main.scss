@@ -1,56 +1,69 @@
 body, html {
   font-family: Century Gothic, CenturyGothic, AppleGothic, URW Gothic, UWR Gothic L, sans-serif;
-  background: #4e4e4e;
-  color: white;
+  font-size: 1.1em;
+  font-size: 2.2vw;
+  background: #eee;
+  color: #333;
   margin: 0;
   padding: 0;
+  @media (max-width: 500px) {
+    font-size: 1em;
+  }
 }
 
-h1 {
+h1, h2, h3 {
   font-weight: normal;
-  text-align: center;
-}
-
-a {
-  color: white !important;
-}
-
-a:hover {
-  background: #777;
 }
 
 header {
   margin-top: 20px;
   text-align: center;
-  border-bottom: 2px solid white;
+  border-bottom: 2px solid #333;
   img {
-    width: 275px;
     position: relative;
-    bottom: -21px;
+    width: 200px;
+    bottom: -19px;
+    @media (min-width: 500px) {
+      bottom: -3vw;
+      width: 32vw;
+    }
   }
 }
 
 section {
   margin-top: 5px;
-  border-top: 2px solid white;
-  border-bottom: 2px solid white;
-  padding: 50px;
+  border-top: 2px solid #333;
+  border-bottom: 2px solid #333;
+  padding: 30px;
+  @media (min-width: 700px) {
+    padding-right: 20%;
+  }
+  @media (max-width: 500px) {
+    padding: 30px 10px;
+  }
+}
 
-  h1.tagline {
-    margin-top: 0;
+section#tagline {
+  padding-right: 20px;
+  text-align: center;
+
+  h1 {
+    margin-bottom: 50px;
   }
 
   table {
-    width: 100%;
     margin-top: 50px;
     td {
       vertical-align: top;
+      overflow: hidden;
       img {
-        width: 100%;
+        width: 95%;
+        border: 1px solid #999;
+        border-radius: 3px;
       }
       #arrow {
-        width: 50px;
-        padding: 20px;
+        width: 60%;
+        border: none;
       }
     }
   }
@@ -58,6 +71,19 @@ section {
 
 footer {
   margin-top: 5px;
-  border-top: 2px solid white;
+  border-top: 2px solid #333;
   min-height: 100px;
+}
+
+small {
+  @media (max-width: 500px) {
+    display: none;
+  }
+}
+
+#github {
+  opacity: 0.75;
+  &:hover {
+    opacity: 1;
+  }
 }
