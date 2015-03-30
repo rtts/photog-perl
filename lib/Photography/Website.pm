@@ -42,7 +42,7 @@ Photography::Website
 
 The Photography::Website module contains the core of the Photog!
 photography website generator. If you're looking to generate websites,
-please refer to the L<photog(3)> manpage for instructions and
+please refer to the photog(3) manpage for instructions and
 configuration options. If you want to learn about the internals of
 Photog!, read on.
 
@@ -599,7 +599,7 @@ sub exifdate {
 
 =head1 SEE ALSO
 
-L<photog(3pm)|photog>
+photog(3)
 
 =head1 AUTHOR
 
