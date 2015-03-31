@@ -14,7 +14,7 @@
    id="svg3042"
    version="1.1"
    inkscape:version="0.48.5 r10040"
-   sodipodi:docname="New document 2">
+   sodipodi:docname="templates.svg">
   <defs
      id="defs3044" />
   <sodipodi:namedview
@@ -25,7 +25,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.2"
-     inkscape:cx="25.527691"
+     inkscape:cx="9.7687624"
      inkscape:cy="20.296623"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -55,20 +55,20 @@
      transform="translate(0,-1012.3622)">
     <path
        inkscape:connector-curvature="0"
-       style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
-       d="m 3.4517819,1019.9773 0,23 33.2500001,0 0,-23 -33.2500001,0 z m 2,2 29.2500001,0 0,19 -29.2500001,0 0,-19 z"
+       style="fill:#3f4c61;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+       d="m 3.4517819,1017.5666 0,25.1744 33.2500001,0 0,-25.1744 -33.2500001,0 z m 2,2.1891 29.2500001,0 0,20.7962 -29.2500001,0 0,-20.7962 z"
        id="rect3020" />
     <path
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none"
-       d="M 7.1875 11.125 L 7.1875 18 L 16.9375 18 L 16.9375 11.125 L 7.1875 11.125 z M 18.65625 11.125 L 18.65625 18 L 32.8125 18 L 32.8125 11.125 L 18.65625 11.125 z M 7.1875 19.5 L 7.1875 27 L 23.65625 27 L 23.65625 19.5 L 7.1875 19.5 z M 25.40625 19.5 L 25.40625 27 L 32.8125 27 L 32.8125 19.5 L 25.40625 19.5 z "
-       transform="translate(0,1012.3622)"
-       id="rect3027" />
+       style="fill:#3f4c61;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       d="m 7.1875,1021.4083 0,7.525 9.75,0 0,-7.525 -9.75,0 z m 11.46875,0 0,7.525 14.15625,0 0,-7.525 -14.15625,0 z m -11.46875,9.1668 0,8.209 16.46875,0 0,-8.209 -16.46875,0 z m 18.21875,0 0,8.209 7.40625,0 0,-8.209 -7.40625,0 z"
+       id="rect3027"
+       inkscape:connector-curvature="0" />
     <rect
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;opacity:1"
+       style="fill:#3f4c61;fill-opacity:1;fill-rule:evenodd;stroke:none"
        id="rect3831"
        width="39.5"
-       height="2"
+       height="2.1890757"
        x="0.3267819"
-       y="1043.4773" />
+       y="1043.2882" />
   </g>
 </svg>

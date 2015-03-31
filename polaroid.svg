@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg">
+ <title>polaroid</title>
+ <defs>
+  <filter id="filter2912">
+   <feGaussianBlur id="feGaussianBlur2914" stdDeviation="3.478238"/>
+  </filter>
+ </defs>
+ <metadata id="metadata7">image/svg+xml</metadata>
+ <g>
+  <title>Layer 1</title>
+  <g id="layer1">
+   <path fill="#000000" stroke-width="0.95025" stroke-linejoin="round" stroke-miterlimit="4" filter="url(#filter2912)" id="rect2893" d="m135.910156,48.377899l330.179688,0l0,365.468018c0,0 -82.544922,-7.178345 -165.089844,-7.178345c-82.544952,0 -165.089844,7.178345 -165.089844,7.178345l0,-365.468018z"/>
+   <rect fill="#f2f2f2" stroke-width="0.945977" stroke-linejoin="round" stroke-miterlimit="4" y="44.154113" x="135.908023" height="362.18399" width="330.18399" id="rect2889"/>
+   <rect opacity="0.555556" fill="#cccccc" stroke-width="0.945977" stroke-linejoin="round" stroke-miterlimit="4" id="rect2916" width="306.51321" height="308.62277" x="147.743413" y="54.300533"/>
+   <rect fill="#000000" stroke="#000000" stroke-width="0.782447" stroke-linejoin="round" stroke-miterlimit="4" y="57.240663" x="150.832523" height="300.33505" width="300.33505" id="rect2310"/>
+  </g>
+  <g display="none" id="layer2">
+   <path opacity="0.199074" fill="#ffffff" stroke-width="0.782447" stroke-linejoin="round" stroke-miterlimit="4" id="rect3250" d="m24.441284,17.849457l300.335083,0c0,0 -47.343689,61.399048 -122.42749,102.973572c-75.08374,41.574524 -177.907593,63.324524 -177.907593,63.324524l0,-166.298096z"/>
+  </g>
+ </g>
+</svg>

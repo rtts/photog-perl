@@ -1,13 +1,10 @@
 ---
 ---
 
-$chartreuse: #f7fae1;
-$harlequin: #e8f7e1;
-$celeste: #d7edf2;
-$lavender: #e6e8ff;
-$mauve: #f9e7ff;
-$vermillion: #ffeae5;
-$aureolin: #fff8e5;
+$darkteal: #52a5ad;
+$lightteal: #cbebef;
+$darkblue: #3f4c61;
+$lightblue: #a9b1bf;
 
 $small: 500px;
 
@@ -29,8 +26,9 @@ h1, h2, h3 {
 
 p > code {
   background: white;
-  padding: 2px;
+  padding: 2px 5px;
   border-radius: 5px;
+  border: 1px solid $lightblue;
 }
 
 pre {
@@ -44,17 +42,23 @@ small {
   font-size: 0.65em;
 }
 
+a {
+  color: $darkteal;
+  text-decoration: underline;
+  border-bottom: 1px solid $darkteal;
+}
+
 header {
-  margin-top: 20px;
+  margin-top: 10px;
   text-align: center;
-  border-bottom: 6px double #ccc;
+  border-bottom: 6px double $lightblue;
   img {
     position: relative;
-    width: 200px;
-    bottom: -20px;
+    width: 300px;
+    bottom: -30px;
     @media (max-width: $small) {
-      width: 150px;
-      bottom: -15px;
+      width: 200px;
+      bottom: -20px;
     }
   }
   nav {
@@ -63,26 +67,25 @@ header {
     a {
       display: inline-block;
       margin-left: 1em;
-      color: #333 !important;
+      color: $darkblue !important;
       text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1em;
+      font-size: 1.25em;
       letter-spacing: -1px;
       position: relative;
       top: 1px;
       transition: all 0.3s ease;
+      border: none;
     }
     a:hover {
-      transform: scale(1.2);
-      transform-origin: bottom;
+      color: $darkteal !important;
     }
   }
 }
 
 section {
   background: white;
-  border-top: 6px double #ccc;
-  border-bottom: 6px double #ccc;
+  border-top: 6px double $lightblue;
+  border-bottom: 6px double $lightblue;
   padding: 30px;
   @media (min-width: 700px) {
     padding: 30px 15%;
@@ -93,11 +96,21 @@ section {
 }
 
 section#tagline {
-  padding: 30px 5%;
+  padding-left: 5%;
+  padding-right: 5%;
+  padding-top: 0;
   text-align: center;
   background: white;
-  border-bottom: 6px double #ccc;
 
+  h1 {
+    font-size: 2.5em;
+    max-width: 21em;
+    margin: 2em auto;
+    margin: 8vw auto;
+    @media (max-width: $small) {
+      font-size: 1.75em;
+    }
+  }
   table {
     margin-top: 50px;
     td {
@@ -118,8 +131,7 @@ section#tagline {
 }
 
 section#features {
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: 45px 10px;
   background: #eee;
 
   ul {
@@ -136,19 +148,17 @@ section#features {
       display: inline-block;
       vertical-align: top;
       text-align: left;
-      width: 16em;
-      margin: 20px;
-      padding: 20px 30px;
+      width: 16.5em;
+      margin: 7px;
+      padding: 30px;
       background: white;
-      border: 6px double #ccc;
-      border-radius: 25px;
+      border: 6px double $lightblue;
 
       @media (max-width: $small) {
         width: auto;
         margin: 10px 0;
       }
       img {
-        opacity: 0.7;
         float: left;
         margin-right: 15px;
         margin-bottom: 10px;
@@ -162,13 +172,6 @@ section#features {
         margin: 0;
         clear: both;
       }
-      &.chartreuse { border-color: $chartreuse }
-      &.harlequin  { border-color: $harlequin }
-      &.celeste    { border-color: $celeste }
-      &.lavender   { border-color: $lavender }
-      &.mauve      { border-color: $mauve }
-      &.vermillion { border-color: $vermillion }
-      &.aureolin   { border-color: $aureolin }
     }
   }
 }
@@ -205,11 +208,18 @@ footer {
 }
 
 #github {
+  display: block;
   opacity: 0.75;
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: none;
   &:hover {
     opacity: 1;
   }
   img {
+    width: 150px;
+    height: 150px;
     @media (max-width: 500px) {
       width: 125px;
       height: 125px;
