@@ -20,7 +20,7 @@ body, html {
   @media (max-width: $small) {
     font-size: 1em;
   }
-  line-height: 140%;
+  line-height: 1.4;
 }
 
 h1, h2, h3 {
@@ -38,13 +38,16 @@ pre {
   padding: 10px;
 }
 
+small {
+  display: block;
+  line-height: 1.1;
+  font-size: 0.65em;
+}
+
 header {
-  margin-top: 45px;
+  margin-top: 20px;
   text-align: center;
   border-bottom: 6px double #ccc;
-  @media (max-width: $small) {
-    margin-top: 0;
-  }
   img {
     position: relative;
     width: 200px;
@@ -52,6 +55,26 @@ header {
     @media (max-width: $small) {
       width: 150px;
       bottom: -15px;
+    }
+  }
+  nav {
+    margin-top: 1em;
+    display: inline-block;
+    a {
+      display: inline-block;
+      margin-left: 1em;
+      color: #333 !important;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1em;
+      letter-spacing: -1px;
+      position: relative;
+      top: 1px;
+      transition: all 0.3s ease;
+    }
+    a:hover {
+      transform: scale(1.2);
+      transform-origin: bottom;
     }
   }
 }
@@ -122,12 +145,13 @@ section#features {
 
       @media (max-width: $small) {
         width: auto;
+        margin: 10px 0;
       }
       img {
         opacity: 0.7;
         float: left;
         margin-right: 15px;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
       }
       h2 {
         line-height: 1.5em;
@@ -180,12 +204,6 @@ footer {
   min-height: 100px;
 }
 
-small {
-  @media (max-width: 500px) {
-    display: none;
-  }
-}
-
 #github {
   opacity: 0.75;
   &:hover {
@@ -193,8 +211,8 @@ small {
   }
   img {
     @media (max-width: 500px) {
-      width: 75px;
-      height: 75px;
+      width: 125px;
+      height: 125px;
     }
   }
 }
