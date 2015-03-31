@@ -1,10 +1,23 @@
+---
+---
+
+$chartreuse: #f7fae1;
+$harlequin: #e8f7e1;
+$celeste: #d7edf2;
+$lavender: #e6e8ff;
+$mauve: #f9e7ff;
+$vermillion: #ffeae5;
+$aureolin: #fff8e5;
+
+$small: 500px;
+
 body, html {
   font-family: Century Gothic, CenturyGothic, AppleGothic, URW Gothic, UWR Gothic L, sans-serif;
   background: #eee;
   color: #333;
   margin: 0;
   padding: 0;
-  @media (max-width: 500px) {
+  @media (max-width: $small) {
     font-size: 1em;
   }
   line-height: 140%;
@@ -26,30 +39,32 @@ pre {
 }
 
 header {
-  margin-top: 20px;
+  margin-top: 45px;
   text-align: center;
-  border-bottom: 9px double #aaa;
+  border-bottom: 6px double #ccc;
+  @media (max-width: $small) {
+    margin-top: 0;
+  }
   img {
     position: relative;
-    width: 160px;
-    bottom: -16px;
-    @media (min-width: 500px) {
-      bottom: -2.9vw;
-      width: 32vw;
-    }
-    @media (min-width: 1200px) {
-      bottom: -32px;
-      width: 380px;
+    width: 200px;
+    bottom: -20px;
+    @media (max-width: $small) {
+      width: 150px;
+      bottom: -15px;
     }
   }
 }
 
 section {
+  background: white;
+  border-top: 6px double #ccc;
+  border-bottom: 6px double #ccc;
   padding: 30px;
   @media (min-width: 700px) {
     padding: 30px 15%;
   }
-  @media (max-width: 500px) {
+  @media (max-width: $small) {
     padding: 30px 10px;
   }
 }
@@ -57,17 +72,8 @@ section {
 section#tagline {
   padding: 30px 5%;
   text-align: center;
-
-  h1 {
-    margin-bottom: 50px;
-    font-size: 3.3vw;
-    @media (max-width: 500px) {
-      font-size: 1.5em;
-    }
-    @media (min-width: 1200px) {
-      font-size: 2.5em;
-    }
-  }
+  background: white;
+  border-bottom: 6px double #ccc;
 
   table {
     margin-top: 50px;
@@ -91,6 +97,7 @@ section#tagline {
 section#features {
   padding-left: 10px;
   padding-right: 10px;
+  background: #eee;
 
   ul {
     display: flex;
@@ -102,21 +109,42 @@ section#features {
     list-style: none;
 
     li {
+      position: relative;
       display: inline-block;
       vertical-align: top;
       text-align: left;
-      width: 15em;
-      margin: 10px;
-      padding: 10px 20px;
+      width: 16em;
+      margin: 20px;
+      padding: 20px 30px;
+      background: white;
       border: 6px double #ccc;
-      border-radius: 40px;
+      border-radius: 25px;
 
+      @media (max-width: $small) {
+        width: auto;
+      }
+      img {
+        opacity: 0.7;
+        float: left;
+        margin-right: 15px;
+        margin-bottom: 15px;
+      }
       h2 {
-        font-size: 1.3em;
+        line-height: 1.5em;
+        margin: 0;
+        font-size: 1.5em;
       }
       p {
-        color: #666;
+        margin: 0;
+        clear: both;
       }
+      &.chartreuse { border-color: $chartreuse }
+      &.harlequin  { border-color: $harlequin }
+      &.celeste    { border-color: $celeste }
+      &.lavender   { border-color: $lavender }
+      &.mauve      { border-color: $mauve }
+      &.vermillion { border-color: $vermillion }
+      &.aureolin   { border-color: $aureolin }
     }
   }
 }
@@ -162,5 +190,11 @@ small {
   opacity: 0.75;
   &:hover {
     opacity: 1;
+  }
+  img {
+    @media (max-width: 500px) {
+      width: 75px;
+      height: 75px;
+    }
   }
 }
