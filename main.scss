@@ -9,39 +9,36 @@ $lightblue: #a9b1bf;
 $small: 500px;
 
 @font-face {
-  font-family: 'Quicksand-Light';
+  font-family: 'Quicksand Light';
   font-style: normal;
   font-weight: 300;
-  src: local('Quicksand Light'), local('Quicksand-Light'), url(fonts/Quicksand-Light.woff) format('woff');
+  src: local('Quicksand Light'), local('Quicksand-Light'), url('fonts/Quicksand-Light.woff') format('woff');
 }
 
 @font-face {
-  font-family: 'Quicksand';
+  font-family: 'TeX Gyre Adventor';
   font-style: normal;
   font-weight: 400;
-  src: local('Quicksand Regular'), local('Quicksand-Regular'), url(fonts/Quicksand-Regular.woff) format('woff');
+  src: local('TeX Gyre Adventor'), url('fonts/TeX-Gyre-Adventor.woff') format('woff');
 }
 
 body, html {
-  font-family: Quicksand, Century Gothic, CenturyGothic, AppleGothic, URW Gothic, UWR Gothic L, sans-serif;
+  font-family: 'TeX Gyre Adventor', URW Gothic L, Avant Garde, Century Gothic, AppleGothic, sans-serif;
   background: #eee;
-  color: #000;
+  color: $darkblue;
   margin: 0;
   padding: 0;
-  line-height: 1.4;
-  letter-spacing: -1px;
+  line-height: 1.5;
   font-size: 18px;
 }
 
 h1, h2, h3 {
-  color: #333;
   font-weight: normal;
   line-height: 1.25;
 }
 
 h2 {
-  font-size: 1.6em;
-  letter-spacing: -2px;
+  font-size: 1.5em;
 }
 
 p > code {
@@ -81,18 +78,17 @@ header {
     }
   }
   nav {
+    letter-spacing: -1px;
     margin-top: 1em;
-    margin-left: .5em;
-    margin-right: .5em;
+    margin-left: 5px;
+    margin-right: 5px;
     font-size: 1.1em;
-    font-weight: bold; /* Faux bold, since no bold is available */
     display: inline-block;
     a {
       display: inline-block;
-      margin: 0 .4em;
+      margin: 0 5px;;
       color: $darkblue !important;
       text-decoration: none;
-      letter-spacing: -2px;
       position: relative;
       top: 1px;
       transition: all 0.3s ease;
@@ -124,8 +120,8 @@ section#tagline {
   background: white;
 
   h1 {
-    font-family: Quicksand-Light;
-    font-weight: 100;
+    font-family: 'Quicksand Light';
+    font-weight: 300;
     letter-spacing: -5px;
     font-size: 3em;
     max-width: 18em;
@@ -133,7 +129,8 @@ section#tagline {
     margin: 8vw auto;
     @media (max-width: $small) {
       letter-spacing: -2px;
-      font-size: 2em;
+      font-size: 2.5em;
+      line-height: 1;
     }
   }
   table {
@@ -173,7 +170,7 @@ section#features {
       display: inline-block;
       vertical-align: top;
       text-align: left;
-      width: 15em;
+      width: 16em;
       margin: 7px;
       padding: 30px;
       background: white;
