@@ -35,8 +35,9 @@ i {
   color: #0a0;
 }
 
-code {
-    font-family: Inconsolata, monospace;
+code, pre {
+  font-family: Inconsolata, monospace;
+  font-size: 1em !important;
 }
 
 dl {
