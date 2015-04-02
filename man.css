@@ -10,6 +10,7 @@ body {
   background: white;
   color: #3f4c61;
   overflow-x: hidden;
+  font-size: 1em;
 }
 
 h1, h2, h3 {
@@ -20,6 +21,7 @@ h1, h2, h3 {
 }
 
 p {
+  font-size: 1em;
   margin-left: 3.1em;
   margin-top: 0;
   margin-bottom: 1em;
