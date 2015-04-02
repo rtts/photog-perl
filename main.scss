@@ -41,7 +41,7 @@ $monospace: Inconsolata;
 body, html {
   font-family: $body;
   background: #eee;
-  color: #444;
+  color: $darkblue;
   margin: 0;
   padding: 0;
   line-height: 1.5;
@@ -52,16 +52,16 @@ h1, h2, h3 {
   font-family: $headings;
   font-weight: normal;
   line-height: 1.25;
-  margin-top: 1em;
+  margin-top: 1.5em;
   margin-bottom: -0.1em;
 }
 
 h1 {
-  font-size: 2em;
+  font-size: 1.9em;
 }
 
 h2 {
-  font-size: 1.5em;
+  font-size: 1.4em;
 }
 
 blockquote {
@@ -86,7 +86,6 @@ p code {
 
 pre {
   margin: 1.25em 0;
-  color: #222;
   padding: 0.5em;
   padding-top: 1.5em;
   position: relative;
@@ -137,7 +136,7 @@ header {
     width: 17em;
     bottom: -1.7em;
     @media (max-width: $small) {
-      width: 12em;
+      width: 14em;
       bottom: -1.2em;
     }
   }
@@ -187,7 +186,6 @@ section#tagline {
     font-weight: 300;
     letter-spacing: -0.09em;
     font-size: 3em;
-    color: $darkblue;
     max-width: 15em;
     margin: 2em auto;
     margin: 7vw auto;
@@ -237,7 +235,6 @@ section#features {
   padding: 2em 0.5em;
   padding-top: 6em;
   background: #eee;
-  color: $darkblue;
 
   ul {
     display: flex;
