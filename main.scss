@@ -64,11 +64,22 @@ h2 {
   font-size: 1.4em;
 }
 
+a {
+  color: $darkteal;
+  text-decoration: none;
+}
+
 blockquote {
   margin: 0;
   padding: 0;
   padding-left: 1em;
   border-left: 0.5em solid $lightteal;
+}
+
+small {
+  display: block;
+  line-height: 1.1;
+  font-size: 0.65em;
 }
 
 code {
@@ -84,7 +95,7 @@ p code {
   border: 1px solid $lightblue;
 }
 
-pre {
+pre, .terminal {
   margin: 1.25em 0;
   padding: 0.5em;
   padding-top: 1.5em;
@@ -116,15 +127,16 @@ pre {
   }
 }
 
-small {
-  display: block;
-  line-height: 1.1;
-  font-size: 0.65em;
+div.terminal {
+  padding: 0;
+  padding-top: 1.2em;
 }
 
-a {
-  color: $darkteal;
-  text-decoration: none;
+iframe {
+  display: block;
+  width: 100%;
+  height: 90vh;
+  border: none;
 }
 
 header {
@@ -169,6 +181,7 @@ section {
   border-top: 6px double $lightblue;
   border-bottom: 6px double $lightblue;
   padding: 0.5em;
+  padding-bottom: 3em;
 
   div {
     max-width: 35em;

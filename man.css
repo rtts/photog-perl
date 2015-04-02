@@ -1,16 +1,15 @@
 @font-face {
-  font-family: VT323;
+  font-family: 'Inconsolata';
   font-style: normal;
   font-weight: 400;
-  src: local('VT323'), local('VT323-Regular'), url(http://fonts.gstatic.com/s/vt323/v7/LfMzj2MWAZU6qzlnp1MNbg.woff) format('woff');
+  src: local('Inconsolata'), url('fonts/Inconsolata.woff') format('woff');
 }
 
 body {
-  font-family: VT323, monospace;
-  background: #222;
-  color: #ccc;
-  font-size: 20px;
-  line-height: 18px;
+  font-family: Inconsolata, monospace;
+  background: white;
+  color: #3f4c61;
+  overflow-x: hidden;
 }
 
 h1, h2, h3 {
@@ -20,12 +19,8 @@ h1, h2, h3 {
   margin-bottom: 0;
 }
 
-#NAME + p {
-  color: white;
-}
-
 p {
-  margin-left: 3em;
+  margin-left: 3.1em;
   margin-top: 0;
   margin-bottom: 1em;
 }
@@ -41,7 +36,7 @@ i {
 }
 
 code {
-    font-family: VT323, monospace;
+    font-family: Inconsolata, monospace;
 }
 
 dl {
@@ -49,16 +44,15 @@ dl {
 }
 
 dt {
-  margin-left: 3em;
+  margin-left: 3.1em;
 }
 
 pre {
-  margin-left: 3em;
+  margin-left: 3.1em;
   margin-top: 0;
-  color: white;
 }
 
 p code:before, p code:after {
                  content: "\"";
                  font-weight: normal;
-}
+               }
