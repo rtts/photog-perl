@@ -3,7 +3,7 @@ layout: frontpage
 
 title: Photog! - The Photography Website Generator
 
-tagline: Photog! turns your Pictures folder into a beautiful Photography website
+tagline: Turn your Pictures folder into a beautiful Photography website!
 
 features:
     - title: Free and Open Source
@@ -41,37 +41,3 @@ features:
 
 ---
 
-Installation
-------------
-
-Installing Photog! is super easy thanks to
-[Cpanminus](https://github.com/miyagawa/cpanminus) and
-[local::lib](search.cpan.org/perldoc/local::lib). The following
-command will automatically install the latest stable version:
-
-    $ cpanm https://github.com/rtts/photog/tarball/stable
-
-Finally, make sure you have [ImageMagick](http://imagemagick.org/)
-installed before you start generating websites.
-
-Creating a website
-------------------
-
-To generate a photography website using the default settings, simply
-`cd` to your Pictures directory and execute `photog` with the
-destination directory as its argument:
-
-    cd ~/Pictures
-    photog ~/public_html
-
-Your photography website should now be available in the destination
-directory. Go have a look!
-
-Documentation
--------------
-
-The complete documentation is available as a manual page after
-installation. Execute the command `man photog` to read it. Another
-manual page, `man Photography::Website`, documents the Perl library
-that is used by Photog! For your convenience, both manual pages are
-also reprinted below.

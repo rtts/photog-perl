@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  {% include head.html %}
+  <body>
+    {% include header.html %}
+
+    <section>
+      <div>
+        {{content || markdownify}}
+      </div>
+    </section>
+
+    {% include footer.html %}
+  </body>
+</html>

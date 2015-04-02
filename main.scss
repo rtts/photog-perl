@@ -14,43 +14,107 @@ $small: 500px;
   font-weight: 300;
   src: local('Quicksand Light'), local('Quicksand-Light'), url('fonts/Quicksand-Light.woff') format('woff');
 }
-
 @font-face {
   font-family: 'TeX Gyre Adventor';
   font-style: normal;
   font-weight: 400;
   src: local('TeX Gyre Adventor'), url('fonts/TeX-Gyre-Adventor.woff') format('woff');
 }
+@font-face {
+  font-family: 'Raleway';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Raleway'), url('fonts/Raleway-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inconsolata';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Inconsolata'), url('fonts/Inconsolata.woff') format('woff');
+}
+
+$body: Raleway;
+$headings: TeX Gyre Adventor;
+$tagline: Quicksand Light;
+$monospace: Inconsolata;
 
 body, html {
-  font-family: 'TeX Gyre Adventor', URW Gothic L, Avant Garde, Century Gothic, AppleGothic, sans-serif;
+  font-family: $body;
   background: #eee;
-  color: $darkblue;
+  color: #444;
   margin: 0;
   padding: 0;
   line-height: 1.5;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 h1, h2, h3 {
+  font-family: $headings;
   font-weight: normal;
   line-height: 1.25;
+  margin-top: 1em;
+  margin-bottom: -0.1em;
+}
+
+h1 {
+  font-size: 2em;
 }
 
 h2 {
   font-size: 1.5em;
 }
 
-p > code {
+blockquote {
+  margin: 0;
+  padding: 0;
+  padding-left: 1em;
+  border-left: 0.5em solid $lightteal;
+}
+
+code {
+  font-family: $monospace;
+  font-size: 1.1em;
+}
+
+p code {
   background: white;
-  padding: 2px 5px;
+  padding: 1px 0.2em;
+  padding-top: 0;
   border-radius: 5px;
   border: 1px solid $lightblue;
 }
 
 pre {
-  background: white;
-  padding: 10px;
+  margin: 1.25em 0;
+  color: #222;
+  padding: 0.5em;
+  padding-top: 1.5em;
+  position: relative;
+  border-top-left-radius: 0.3em;
+  border-top-right-radius: 0.3em;
+  box-shadow: 0 0 3px rgba(0,0,0,0.3);
+  overflow: auto;
+  &:before {
+    position: absolute;
+    box-sizing: border-box;
+    font-family: $body;
+    font-size: 0.8em;
+    top: 0;
+    left: 0;
+    content: "Terminal Window";
+    color: #666;
+    text-align: center;
+    display: block;
+    height: 1.5em;
+    width: 100%;
+    background: linear-gradient(to bottom, #f7f7f7, #eee);
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-top-left-radius: 0.3em;
+    border-top-right-radius: 0.3em;
+  }
 }
 
 small {
@@ -65,36 +129,38 @@ a {
 }
 
 header {
-  margin-top: 10px;
+  margin-top: 0.5em;
   text-align: center;
   border-bottom: 6px double $lightblue;
   img {
     position: relative;
-    width: 300px;
-    bottom: -30px;
+    width: 17em;
+    bottom: -1.7em;
     @media (max-width: $small) {
-      width: 200px;
-      bottom: -20px;
+      width: 12em;
+      bottom: -1.2em;
     }
   }
   nav {
-    letter-spacing: -1px;
+    font-family: $headings;
+    letter-spacing: -0.05em;
     margin-top: 1em;
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: 0.25em;
+    margin-right: 0.25em;
     font-size: 1.1em;
     display: inline-block;
     a {
       display: inline-block;
-      margin: 0 5px;;
+      margin: 0 0.25em;;
       color: $darkblue !important;
       text-decoration: none;
       position: relative;
-      top: 1px;
-      transition: all 0.3s ease;
     }
     a:hover {
       color: $darkteal !important;
+    }
+    @media (max-width: $small) {
+      font-size: 1em;
     }
   }
 }
@@ -103,38 +169,34 @@ section {
   background: white;
   border-top: 6px double $lightblue;
   border-bottom: 6px double $lightblue;
-  padding: 30px;
-  @media (min-width: 700px) {
-    padding: 30px 15%;
-  }
-  @media (max-width: $small) {
-    padding: 30px 10px;
+  padding: 0.5em;
+
+  div {
+    max-width: 35em;
+    margin: auto;
   }
 }
 
 section#tagline {
-  padding-left: 5%;
-  padding-right: 5%;
-  padding-top: 0;
+  padding: 0 5%;
   text-align: center;
   background: white;
 
   h1 {
-    font-family: 'Quicksand Light';
+    font-family: $tagline;
     font-weight: 300;
-    letter-spacing: -5px;
+    letter-spacing: -0.09em;
     font-size: 3em;
-    max-width: 18em;
+    color: $darkblue;
+    max-width: 15em;
     margin: 2em auto;
-    margin: 8vw auto;
+    margin: 7vw auto;
     @media (max-width: $small) {
-      letter-spacing: -2px;
       font-size: 2.5em;
       line-height: 1;
     }
   }
   table {
-    margin-top: 50px;
     td {
       vertical-align: top;
       overflow: hidden;
@@ -144,17 +206,38 @@ section#tagline {
         border-radius: 3px;
       }
       #arrow {
-        margin-top: 25px;
+        margin-top: 1.5em;
         width: 40%;
         border: none;
       }
     }
   }
+  a.button {
+    font-family: $headings;
+    font-weight: bold;
+    font-size: 1.25em;
+    display: inline-block;
+    background: $darkteal;
+    border: 6px double #f7f7f7;
+    border-radius: 2em;
+    color: white;
+    margin-top: 1em;
+    padding: 0.5em 2em;
+    position: relative;
+    top: 1.75em;
+    top: calc(1.5em + 6px);
+    box-shadow: 0 0 2em rgba(0,0,0,0.15) inset;
+    &:hover {
+      box-shadow: 0 0 2em rgba(255,255,255,0.15) inset;
+    }
+  }
 }
 
 section#features {
-  padding: 45px 10px;
+  padding: 2em 0.5em;
+  padding-top: 6em;
   background: #eee;
+  color: $darkblue;
 
   ul {
     display: flex;
@@ -171,19 +254,21 @@ section#features {
       vertical-align: top;
       text-align: left;
       width: 16em;
-      margin: 7px;
-      padding: 30px;
+      margin: 0.5em;
+      padding: 1.5em;
       background: white;
       border: 6px double $lightblue;
 
       @media (max-width: $small) {
         width: auto;
-        margin: 10px 0;
+        margin: 0.5em 0;
       }
       img {
         float: left;
-        margin-right: 15px;
-        margin-bottom: 10px;
+        width: 4.2em;
+        height: 4.2em;
+        margin-right: 1em;
+        margin-bottom: 0.5em;
       }
       h2 {
         margin: 0;
@@ -196,35 +281,9 @@ section#features {
   }
 }
 
-section#manpages {
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  padding: 15px;
-  @media (max-width: 1100px) {
-    display: block;
-    padding: 0;
-  }
-  div {
-    -webkit-box-flex: 1;
-    -moz-box-flex: 1;
-    -ms-flex: 1 1 0;
-    -webkit-flex: 1 1 0;
-    flex: 1 1 0;
-    height: 85vh;
-    margin: 15px;
-    iframe {
-      border: none;
-      width: 100%;
-      height: 100%;
-    }
-  }
-}
-
 footer {
-  min-height: 100px;
+  border-top: 6px double $lightblue;
+  min-height: 5em;
 }
 
 #github {

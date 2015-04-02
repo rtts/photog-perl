@@ -1,0 +1,153 @@
+---
+title: Photog! - Download, install and get started
+layout: download
+---
+
+Download & Installation Summary
+===============================
+
+Installing Photog! is super easy thanks to
+[Cpanminus](https://github.com/miyagawa/cpanminus) and
+[local::lib](http://search.cpan.org/perldoc/local::lib). First, make
+sure you have [ImageMagick](http://imagemagick.org/) installed, then
+open up a terminal and issue the following commands:
+
+    > cpanm https://github.com/rtts/photog/tarball/stable
+    > cd Pictures
+    > echo destination = ~/My-Photog-Website > photog.ini
+    > photog
+
+Congratulations! Your photography website should now be available at
+the destination you specified. Look for a file named `index.html` in
+that location and open it in your web browser.
+
+Photog! is packaged as a Perl module that is available in the "stable"
+branch of
+[Photog! on Github]((https://github.com/rtts/photog/tree/stable)). Instead
+of using the `cpanm` command above, you could also just clone the
+repository or
+[download the tarball directly](https://github.com/rtts/photog/tarball/stable).
+
+A More Detailed Installation Guide
+==================================
+
+The rest of this guide is intended for people who are unfamiliar with
+either [Perl](http://www.perl.org/) or
+[CPAN modules](http://www.cpan.org/). It provides some general advice
+about setting up Perl and installing modules, and concludes with
+installing the Photog! module.
+
+Step 1 -- Get Perl
+-----------------
+
+> "If you put a million monkeys at a million keyboards, one of them
+> will eventually write a Java program.  The rest of them will write
+> Perl programs."
+>
+> <cite>Brian Kelly ([source](http://stackoverflow.com/a/273868/1324356))</cite>
+
+The first step is to make sure that Perl, the interpreter of the
+[Perl programming language](https://en.wikipedia.org/wiki/Perl), is
+installed. You can check this by running `perl -v` on a command
+line. Perl is installed by default on MacOS and almost all Linux
+distributions, but Windows users will have to
+[download and run an installer](http://www.perl.org/get.html#win32).
+
+Step 2 -- Get Cpanminus
+----------------------
+
+Perl is known for having some of the the best tools and libraries
+around. One such tool is Cpanminus which has become
+[the recommended way](http://www.cpan.org/modules/INSTALL.html) to
+install packaged Perl code. Once you have Cpanminus installed it is
+trivial to install additional Perl modules, either from downloaded
+archives or directly from [CPAN](http://www.cpan.org/), the enormous
+Perl software archive.  The `cpanm` command of Cpanminus is the Perl
+equivalent of Python's&nbsp;[`pip`](https://pip.pypa.io/),
+Ruby's&nbsp;[`gem`](https://rubygems.org/),
+Node's&nbsp;[`npm`](https://www.npmjs.com/), and
+PHP's&nbsp;[`pear`](http://pear.php.net/).
+
+The easiest way to install Cpanminus is to use your operating system's
+package manager. On Debian-based systems, run `apt-get
+install cpanminus`. On Redhat/CentOS/Fedora the command is `yum
+install perl-App-cpanminus`. Other Linux distibutions have similarly
+named packages available.
+
+On Windows and Mac OS you'll have to use the somewhat old-fashioned
+[CPAN client](http://perldoc.perl.org/CPAN.html) to install the module
+named **App::cpanminus**. Enter the following commands at a command
+prompt:
+
+    > perl -MCPAN -e shell
+    > install App:cpanminus
+
+Step 3 -- Install local::lib
+---------------------------
+
+By default, Cpanminus installs modules system-wide which requires
+admin or root privileges. If you're OK with that, you can skip this
+step. Otherwise, install and enable **local::lib** to allow
+unprivileged installation of modules to a user's home directory.
+
+First, run `cpanm local::lib` as the system administrator to install
+it (although it's also possible to install **local::lib** itself as a
+regular user, see
+[the bootstrapping technique](http://search.cpan.org/perldoc/local::lib#The_bootstrapping_technique)).
+Second, you'll have to enable it by setting a few environment
+variables. The commands to do this are automatically printed out when
+you execute `perl -Mlocal::lib`. If you're a bash user, append the
+output of this command to `.bashrc`. On Windows, paste the output into
+a `.bat` file and put it in the startup folder.
+
+
+Step 4 -- Install Photog!
+------------------------
+
+Your Perl environment is now completely setup, and you can install any
+Perl package using the `cpanm` command. Use your newly acquired powers
+to install Photog! by running the following command:
+
+    > cpanm https://github.com/rtts/photog/tarball/stable
+
+Photog! by default uses ImageMagick to process images. If you want,
+you can later use the configuration file to supply another image
+processor (such as [GraphicsMagick](http://www.graphicsmagick.org/) or
+[GIMP](http://www.gimp.org/tutorials/Basic_Batch/)). Installing
+ImageMagick is easiest with a package manager, e.g. `apt-get install
+imagemagick`. Otherwise, visit
+[ImageMagick's download site](http://imagemagick.org/script/binary-releases.php)
+to download a suitable installer.
+
+
+Step 5 -- Create a website
+--------------------------
+
+To generate a photography website using the default settings, simply
+`cd` to your Pictures directory and execute `photog` with the
+destination directory as its argument:
+
+    > cd Pictures
+    > photog ~/My-Photog-Website
+
+You can also specify the default destination inside a configuration
+file named `photog.ini`, so you only have to run `photog` to generate
+your website:
+
+    > cd Pictures
+    > echo destination = ~/My-Photog-Website > photog.ini
+    > photog
+
+Your photography website should now be available in the destination
+directory. Go have a look!
+
+Great! What Now?
+-------------
+
+The next step is to learn how you can configure Photog! to do exactly
+what you want. Besides **destination**, there are many more
+configuration variables available. You can also customize the
+templates and the commands used to generate the images. You can even
+specify a seperate configuration for each subdirectory of your
+pictures folder. To learn how, head on over to the
+[Documentation](/doc/).
