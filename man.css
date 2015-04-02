@@ -2,15 +2,17 @@
   font-family: 'Inconsolata';
   font-style: normal;
   font-weight: 400;
-  src: local('Inconsolata'), url('fonts/Inconsolata.woff') format('woff');
+  src: url('/fonts/Inconsolata.woff') format('woff');
 }
 
-body {
-  font-family: Inconsolata, monospace;
+body, html {
+  font-family: Inconsolata;
   background: white;
   color: #3f4c61;
   overflow-x: hidden;
   font-size: 16px;
+  text-size-adjust: none;
+  -moz-text-size-adjust: none;
 }
 
 h1, h2, h3 {
@@ -21,8 +23,7 @@ h1, h2, h3 {
 }
 
 p {
-  font-size: 1em !important;
-  margin-left: 3.1em;
+  margin-left: 3em;
   margin-top: 0;
   margin-bottom: 1em;
 }
@@ -38,8 +39,8 @@ i {
 }
 
 code, pre {
-  font-family: Inconsolata, monospace;
-  font-size: 1em !important;
+  font-family: Inconsolata;
+  font-size: 1em;
 }
 
 dl {
@@ -47,7 +48,7 @@ dl {
 }
 
 dt {
-  margin-left: 3.1em;
+  margin-left: 3em;
 }
 
 pre {
