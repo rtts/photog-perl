@@ -1,4 +1,4 @@
-package Photography::Website::Configure
+package Photography::Website::Configure;
 
 =over
 

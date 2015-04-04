@@ -11,7 +11,6 @@ _site/bin/photog-scale
 _site/bin/photog-thumbnail
 _site/bin/photog-watermark
 _site/dist.ini
-_site/lib/Photography/Configure.pm
 _site/lib/Photography/Website.pm
 _site/lib/Photography/Website/Configure.pm
 _site/share/static/SourceSansPro-ExtraLight.ttf
@@ -29,7 +28,6 @@ bin/photog-scale
 bin/photog-thumbnail
 bin/photog-watermark
 dist.ini
-lib/Photography/Configure.pm
 lib/Photography/Website.pm
 lib/Photography/Website/Configure.pm
 share/static/SourceSansPro-ExtraLight.ttf
