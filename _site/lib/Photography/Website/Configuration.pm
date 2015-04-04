@@ -4,11 +4,6 @@ package Photography::Website::Configure;
 
 Photography::Website::Configuration
 
-=head1 SYNOPSIS
-
-    use Photography::Website::Configuration
-    my $album_config = Photography::Website::Configuration->new("source_directory")
-
 =head1 DESCRIPTION
 
 This module contains the configuration logic of Photog! the photography website generator. See photog(3) if you just want to use Photog!, and see Photography::Website for information about how it works. This mapage contains the list of all possible configuration variables and their defaults.
