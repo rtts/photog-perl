@@ -135,7 +135,7 @@ The album link for use inside the <a> tag in the template.
 
     $album->{href} ||= $album->{slug} . '/';
 
-=item
+=item src
 
 The album preview image for use inside the <img> tag in the
 template. Width and height will also be made available to the
@@ -195,7 +195,7 @@ thumbnails. Default to the last modified time of the source directory.
     $album->{date} = DateTime->from_epoch(
         epoch => (stat $source)[9]);
 
-=item
+=item protected
 
 A list of filenames that will not be automatically deleted at the
 album's destination directory. Defaults to an empty list, although the
@@ -329,7 +329,10 @@ The command to composite multiple images into a preview, default: C<photog-previ
     $album->{preview_command} ||= $parent->{preview_command}
                               || 'photog-preview';
 
-### HALLELUJA!
+=back
+
+=cut
+
     bless $album;
 }
 
