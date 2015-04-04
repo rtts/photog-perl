@@ -6,7 +6,11 @@ Photography::Website::Configuration
 
 =head1 DESCRIPTION
 
-This module contains the configuration logic of Photog! the photography website generator. See photog(3) if you just want to use Photog!, and see Photography::Website for information about how it works. This mapage contains the list of all possible configuration variables and their defaults.
+This module contains the configuration logic of Photog! the
+photography website generator. See photog(3) if you just want to use
+Photog!, and see Photography::Website(1) for information about how it
+works. This manpage contains the list of all possible configuration
+variables and their defaults.
 
 =head1 FUNCTIONS
 
@@ -64,7 +68,7 @@ or a default value.
 
 =over 18
 
-=item source
+=item B<source>
 
 The source directory.
 
@@ -72,7 +76,7 @@ The source directory.
 
     $album->{source} = $source;
 
-=item config
+=item B<config>
 
 Path to the album's C<photog.ini>
 
@@ -80,7 +84,7 @@ Path to the album's C<photog.ini>
 
     $album->{config} = catfile($source, $CONFIG_FILE);
 
-=item name
+=item B<name>
 
 Directory basename of the album, currently only used for debugging
 purposes.
@@ -89,7 +93,7 @@ purposes.
 
     $album->{name} = basename($source);
 
-=item root
+=item B<root>
 
 The destination directory of the root album. This is always inherited
 from the parent album.
@@ -105,7 +109,7 @@ from the parent album.
 
 =over 18
 
-=item slug
+=item B<slug>
 
 Used as the basename for the destination directory, default: basename
 of the source directory.
@@ -114,7 +118,7 @@ of the source directory.
 
     $album->{slug} ||= basename($source);
 
-=item url
+=item B<url>
 
 Calculated by concatenating the parent url and the album slug.
 
@@ -124,7 +128,7 @@ Calculated by concatenating the parent url and the album slug.
         ? "$parent->{url}$album->{slug}/"
         : "/";
 
-=item href
+=item B<href>
 
 The album link for use inside the <a> tag in the template.
 
@@ -132,7 +136,7 @@ The album link for use inside the <a> tag in the template.
 
     $album->{href} ||= $album->{slug} . '/';
 
-=item src
+=item B<src>
 
 The album preview image for use inside the <img> tag in the
 template. Width and height will also be made available to the
@@ -142,7 +146,7 @@ template.
 
     $album->{src} ||= $album->{href} . "thumbnails/all.jpg";
 
-=item destination
+=item B<destination>
 
 The album's destination directory. Calculated by concatenating the
 root destination directory and the album's URL.
@@ -152,7 +156,7 @@ root destination directory and the album's URL.
     $album->{destination} ||=
         catfile($album->{root}, substr($album->{url}, 1));
 
-=item thumbnail
+=item B<thumbnail>
 
 Path to the album preview image, for use a thumbnail in the parent
 album. Defaults to the file "all.jpg" in subdirectory "thumbnails"
@@ -163,7 +167,7 @@ inside the destination directory.
     $album->{thumbnail} ||=
         catfile($album->{destination}, "thumbnails/all.jpg");
 
-=item index
+=item B<index>
 
 Path to to the album's C<index.html>.
 
@@ -172,7 +176,7 @@ Path to to the album's C<index.html>.
     $album->{index} ||=
         catfile($album->{destination}, "index.html");
 
-=item unlisted
+=item B<unlisted>
 
 Boolean value that specifies whether this album will be diplayed on
 the parent album. Not inherited, always defaults to false (except for
@@ -182,7 +186,7 @@ the root album)
 
     $album->{unlisted} ||= ($album == $parent);
 
-=item date
+=item B<date>
 
 The album's ISO 8601 date, used for sorting albums and image
 thumbnails. Default to the last modified time of the source directory.
@@ -192,7 +196,7 @@ thumbnails. Default to the last modified time of the source directory.
     $album->{date} = DateTime->from_epoch(
         epoch => (stat $source)[9]);
 
-=item protected
+=item B<protected>
 
 A list of filenames that will not be automatically deleted at the
 album's destination directory. Defaults to an empty list, although the
@@ -208,7 +212,7 @@ root album will also get the directory 'static' appended to this list.
 
 =over 18
 
-=item title
+=item B<title>
 
 The webpage title, default: "My Photography Website"
 
@@ -219,7 +223,7 @@ The webpage title, default: "My Photography Website"
             || "My Photography Website";
     }
 
-=item copyright
+=item B<copyright>
 
 Copyright notice, default: empty
 
@@ -229,7 +233,7 @@ Copyright notice, default: empty
         $album->{copyright} = $parent->{copyright} || '';
     }
 
-=item template
+=item B<template>
 
 Path to the album's HTML template, default: Photog!'s
 C<template.html>.
@@ -239,7 +243,7 @@ C<template.html>.
     $album->{template} ||= $parent->{template}
                        || dist_file('Photog', 'template.html');
 
-=item preview
+=item B<preview>
 
 The number of images in the album's preview, default: 9.
 
@@ -247,7 +251,7 @@ The number of images in the album's preview, default: 9.
 
     $album->{preview} ||= $parent->{preview} || 9;
 
-=item watermark
+=item B<watermark>
 
 Path to a (transparent!) watermark file, default: empty.
 
@@ -257,7 +261,7 @@ Path to a (transparent!) watermark file, default: empty.
         $album->{watermark} = $parent->{watermark} || '';
     }
 
-=item sort
+=item B<sort>
 
 Either "ascending" or "descending", default: "descending".
 
@@ -265,7 +269,7 @@ Either "ascending" or "descending", default: "descending".
 
     $album->{sort} ||= $parent->{sort} || 'descending';
 
-=item fullscreen
+=item B<fullscreen>
 
 A boolean to indicate whether large images should be made available, default: true.
 
@@ -280,7 +284,7 @@ A boolean to indicate whether large images should be made available, default: tr
         }
     }
 
-=item oblivious
+=item B<oblivious>
 
 A boolean to indicate whether photog.ini files are required, default: false.
 
@@ -290,7 +294,7 @@ A boolean to indicate whether photog.ini files are required, default: false.
         $album->{oblivious} = $parent->{oblivious} || 0;
     }
 
-=item scale_command
+=item B<scale_command>
 
 The command to resize an image to web scale, default: C<photog-scale>.
 
@@ -299,7 +303,7 @@ The command to resize an image to web scale, default: C<photog-scale>.
     $album->{scale-command} ||= $parent->{scale_command}
                             || 'photog-scale';
 
-=item watermark_command
+=item B<watermark_command>
 
 The command to watermark an image, default: C<photog-watermark>.
 
@@ -308,7 +312,7 @@ The command to watermark an image, default: C<photog-watermark>.
     $album->{watermark_command} ||= $parent->{watermark_command}
                                 || 'photog-watermark';
 
-=item thumbnail_command
+=item B<thumbnail_command>
 
 The command to thumbnail an image, default: C<photog-thumbnail>.
 
@@ -317,7 +321,7 @@ The command to thumbnail an image, default: C<photog-thumbnail>.
     $album->{thumbnail_command} ||= $parent->{thumbnail_command}
                                 || 'photog-thumbnail';
 
-=item preview_command
+=item B<preview_command>
 
 The command to composite multiple images into a preview, default: C<photog-preview>.
 
