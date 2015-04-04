@@ -15,6 +15,8 @@ This module contains the configuration logic of Photog! the photography website 
 
 =head1 FUNCTIONS
 
+The module contains only a single function:
+
 =over
 
 =item B<new>(I<$source>[, I<$parent>])
