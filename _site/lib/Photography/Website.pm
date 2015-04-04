@@ -3,9 +3,10 @@ use strict;
 use warnings;
 use feature 'say';
 
+use Photography::Website::Configure;
 use DateTime;
 use File::Copy            qw(copy);
-use File::Path            qw(make_path, remove_tree);
+use File::Path            qw(make_path remove_tree);
 use File::Basename        qw(basename dirname);
 use File::ShareDir        qw(dist_file dist_dir);
 use File::Spec::Functions qw(catfile);
@@ -83,7 +84,8 @@ the source directory tree.
 sub create_album {
     my $source = shift;
     my $parent = shift; # optional
-    my $album = configure($source, $parent) || return;
+    my $album = Photography::Website::Configure::configure($source, $parent) || return;
+
     for (list($source)) {
         my $item;
         if (-f) {
@@ -185,9 +187,9 @@ true if any images have been (re)generated.
 sub update_image {
     my $img = shift;
     my $update_needed =
-        not -f $item->{destination} or
-        not -f $item->{thumbnail} or
-        is_newer($item->{source}, $item->{destination});
+        not -f $img->{destination} or
+        not -f $img->{thumbnail} or
+        is_newer($img->{source}, $img->{destination});
 
     if ($update_needed) {
         build_image($img);
@@ -295,8 +297,8 @@ sub build_index {
     }
 
     @{$album->{items}} = sort {
-        $a->{date} cmp $b->{date} if $album->{sort} eq 'ascending';
-        $b->{date} cmp $a->{date} if $album->{sort} eq 'descending';
+        return $a->{date} cmp $b->{date} if $album->{sort} eq 'ascending';
+        return $b->{date} cmp $a->{date} if $album->{sort} eq 'descending';
     } @{$album->{items}};
 
     say $album->{url} . "index.html";
