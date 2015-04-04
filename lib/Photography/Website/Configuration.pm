@@ -56,13 +56,14 @@ sub new {
 
 =head1 CONFIGURATION VARIABLES
 
-There are three types of configuration variables: Static variables,
-Dynamic variables, and Inherited variables. The following sections
-summarize their usage and default values.
+There are three types of configuration variables: static variables,
+dynamic variables, and inherited variables. Static variables cannot be
+changed from a configuration file. Dynamic variables can be set in a
+configuration or they are calculated dynamically. Inherited variables
+are either set from a configuration file, inherited from the parent,
+or a default value.
 
-=head2 Static variables
-
-These cannot be changed from a configuration file.
+=head3 Static variables
 
 =over 16
 
@@ -103,9 +104,7 @@ from the parent album.
 
 =back
 
-=head2 Dynamic variables
-
-Either set in the config file or calculated dynamically.
+=head3 Dynamic variables
 
 =over 16
 
@@ -210,8 +209,6 @@ root album will also get the directory 'static' appended to this list.
 
 =head3 Inherited variables
 
-Set in the config file, propagated from parent, or a default value.
-
 =over 16
 
 =item title
@@ -305,7 +302,7 @@ The command to resize an image to web scale, default: C<photog-scale>.
     $album->{scale-command} ||= $parent->{scale_command}
                             || 'photog-scale';
 
-=item
+=item watermark_command
 
 The command to watermark an image, default: C<photog-watermark>.
 
@@ -314,7 +311,7 @@ The command to watermark an image, default: C<photog-watermark>.
     $album->{watermark_command} ||= $parent->{watermark_command}
                                 || 'photog-watermark';
 
-=item
+=item thumbnail_command
 
 The command to thumbnail an image, default: C<photog-thumbnail>.
 
@@ -323,7 +320,7 @@ The command to thumbnail an image, default: C<photog-thumbnail>.
     $album->{thumbnail_command} ||= $parent->{thumbnail_command}
                                 || 'photog-thumbnail';
 
-=item
+=item preview_command
 
 The command to composite multiple images into a preview, default: C<photog-preview>.
 
