@@ -54,17 +54,17 @@ sub new {
 
 =back
 
-head1 CONFIGURATION VARIABLES
+=head1 CONFIGURATION VARIABLES
 
 There are three types of configuration variables: Static variables,
 Dynamic variables, and Inherited variables. The following sections
 summarize their usage and default values.
 
-head2 Static variables
+=head2 Static variables
 
 These cannot be changed from a configuration file.
 
-=over 12
+=over 16
 
 =item source
 
@@ -107,7 +107,7 @@ from the parent album.
 
 Either set in the config file or calculated dynamically.
 
-=over 12
+=over 16
 
 =item slug
 
@@ -212,7 +212,7 @@ root album will also get the directory 'static' appended to this list.
 
 Set in the config file, propagated from parent, or a default value.
 
-=over 12
+=over 16
 
 =item title
 
