@@ -28,6 +28,7 @@ requires:
   IPC::Cmd: '0'
   Image::ExifTool: '0'
   Image::Size: '0'
+  Photography::Website::Configure: '0'
   String::Random: '0'
   Template: '0'
   feature: '0'

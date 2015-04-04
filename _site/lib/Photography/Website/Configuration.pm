@@ -1,22 +1,38 @@
 package Photography::Website::Configure;
 
+=head1 NAME
+
+Photography::Website::Configuration
+
+=head1 SYNOPSIS
+
+    use Photography::Website::Configuration
+    my $album_config = Photography::Website::Configuration->new("source_directory")
+
+=head1 DESCRIPTION
+
+This module contains the configuration logic of Photog! the photography website generator. See photog(3) if you just want to use Photog!, and see Photography::Website for information about how it works. This mapage contains the list of all possible configuration variables and their defaults.
+
+=head1 FUNCTIONS
+
 =over
 
-=item B<configure>(I<$source>[, I<$parent>])
+=item B<new>(I<$source>[, I<$parent>])
 
 Configures a new album in various ways. First, it tries to get the
 configuration from a file named C<photog.ini> in the album's $source
 directory. Second, it tries to copy the configuration variables from
 the $parent album. Finally, it supplies default configuration
-values. Returns a reference to a new album, but one that doesn't have
-any child nodes yet.
+values. It returns a reference to a new album, but one that doesn't
+have any child nodes yet.
 
 =cut
 
-sub configure {
+sub new {
+    my $type   = shift;
     my $source = shift;
     my $parent = shift; # optional
-    my $album = get_config($source);
+    my $album  = get_config($source);
     $album->{type} = 'album';
 
     # Special case for root albums
@@ -36,18 +52,17 @@ sub configure {
         save_config($album, $source);
     }
 
-=pod
+=back
+
+head1 CONFIGURATION VARIABLES
 
 There are three types of configuration variables: Static variables,
 Dynamic variables, and Inherited variables. The following sections
-summarize their usage and default values. For a more detailed
-explanation please refer to the photog(3) manual page.
+summarize their usage and default values.
 
-=back
+head2 Static variables
 
-head3 Static variables
-
-These cannot be changed from a config file.
+These cannot be changed from a configuration file.
 
 =over 12
 
@@ -88,7 +103,7 @@ from the parent album.
 
 =back
 
-=head3 Dynamic variables
+=head2 Dynamic variables
 
 Either set in the config file or calculated dynamically.
 
@@ -101,9 +116,7 @@ of the source directory.
 
 =cut
 
-    if (not exists $album->{slug}) {
-        $album->{slug} = basename($source);
-    }
+    $album->{slug} ||= basename($source);
 
 =item url
 
@@ -111,9 +124,9 @@ Calculated by concatenating the parent url and the album slug.
 
 =cut
 
-    if (not exists $album->{url}) {
-        $album->{url} = $parent->{url} ? "$parent->{url}$album->{slug}/": "/";
-    }
+    $album->{url} ||= $parent->{url}
+        ? "$parent->{url}$album->{slug}/"
+        : "/";
 
 =item href
 
@@ -121,9 +134,7 @@ The album link for use inside the <a> tag in the template.
 
 =cut
 
-    if (not exists $album->{href}) {
-        $album->{href} = $album->{slug} . '/';
-    }
+    $album->{href} ||= $album->{slug} . '/';
 
 =item
 
@@ -133,9 +144,7 @@ template.
 
 =cut
 
-    if (not exists $album->{src}) {
-        $album->{src} = $album->{href} . "thumbnails/all.jpg";
-    }
+    $album->{src} ||= $album->{href} . "thumbnails/all.jpg";
 
 =item destination
 
@@ -144,9 +153,8 @@ root destination directory and the album's URL.
 
 =cut
 
-    if (not exists $album->{destination}) {
-        $album->{destination} = catfile($album->{root}, substr($album->{url}, 1));
-    }
+    $album->{destination} ||=
+        catfile($album->{root}, substr($album->{url}, 1));
 
 =item thumbnail
 
@@ -156,9 +164,8 @@ inside the destination directory.
 
 =cut
 
-    if (not exists $album->{thumbnail}) {
-        $album->{thumbnail} = catfile($album->{destination}, "thumbnails/all.jpg");
-    }
+    $album->{thumbnail} ||=
+        catfile($album->{destination}, "thumbnails/all.jpg");
 
 =item index
 
@@ -166,21 +173,18 @@ Path to to the album's C<index.html>.
 
 =cut
 
-    if (not exists $album->{index}) {
-        $album->{index} = catfile($album->{destination}, "index.html");
-    }
+    $album->{index} ||=
+        catfile($album->{destination}, "index.html");
 
 =item unlisted
 
 Boolean value that specifies whether this album will be diplayed on
-the parent album. Default to true for all albums except the root
-album.
+the parent album. Not inherited, always defaults to false (except for
+the root album)
 
 =cut
 
-    if (not exists $album->{unlisted}) {
-        $album->{unlisted} = ($album == $parent);
-    }
+    $album->{unlisted} ||= ($album == $parent);
 
 =item date
 
@@ -189,9 +193,8 @@ thumbnails. Default to the last modified time of the source directory.
 
 =cut
 
-    if (not exists $album->{date}) {
-        $album->{date} = DateTime->from_epoch(epoch => (stat $source)[9]);
-    }
+    $album->{date} = DateTime->from_epoch(
+        epoch => (stat $source)[9]);
 
 =item
 
@@ -201,9 +204,7 @@ root album will also get the directory 'static' appended to this list.
 
 =cut
 
-    if (not exists $album->{protected}) {
-        $album->{protected} = ();
-    }
+    $album->{protected} ||= ();
 
 =back
 
@@ -219,8 +220,9 @@ The webpage title, default: "My Photography Website"
 
 =cut
 
-    if (not exists $album->{title}) {
-        $album->{title} = $parent->{title} || "My Photography Website";
+    if (not exists $album->{tittle}) {
+        $album->{title} = $parent->{title}
+            || "My Photography Website";
     }
 
 =item copyright
@@ -240,10 +242,8 @@ C<template.html>.
 
 =cut
 
-    if (not exists $album->{template}) {
-        $album->{template} = $parent->{template}
-            || dist_file('Photog', 'template.html');
-    }
+    $album->{template} ||= $parent->{template}
+                       || dist_file('Photog', 'template.html');
 
 =item preview
 
@@ -251,9 +251,7 @@ The number of images in the album's preview, default: 9.
 
 =cut
 
-    if (not exists $album->{preview}) {
-        $album->{preview} = $parent->{preview} || 9;
-    }
+    $album->{preview} ||= $parent->{preview} || 9;
 
 =item watermark
 
@@ -271,71 +269,71 @@ Either "ascending" or "descending", default: "descending".
 
 =cut
 
-    if (not exists $album->{sort}) {
-        $album->{sort} = $parent->{sort} || 'descending';
-    }
+    $album->{sort} ||= $parent->{sort} || 'descending';
 
-=item
+=item fullscreen
 
-
+A boolean to indicate whether large images should be made available, default: true.
 
 =cut
 
     if (not exists $album->{fullscreen}) {
-        $album->{fullscreen} = $parent->{fullscreen} || 1;
+        if (not defined $parent->{fullscreen}) {
+            $album->{fullscreen} = 1;
+        }
+        else {
+            $album->{fullscreen} = $parent->{fullscreen};
+        }
     }
 
-=item
+=item oblivious
 
-
-
-=cut
-
-    $album->{oblivious}
-        ||= $parent->{oblivious}
-        || 0;
-
-=item
-
-
+A boolean to indicate whether photog.ini files are required, default: false.
 
 =cut
 
-    $album->{scale_command}
-        ||= $parent->{scale_command}
-        || 'photog-scale';
+    if (not exists $album->{oblivious}) {
+        $album->{oblivious} = $parent->{oblivious} || 0;
+    }
 
-=item
+=item scale_command
 
-
-
-=cut
-
-    $album->{watermark_command}
-        ||= $parent->{watermark_command}
-        || 'photog-watermark';
-
-=item
-
-
+The command to resize an image to web scale, default: C<photog-scale>.
 
 =cut
 
-    $album->{thumbnail_command}
-        ||= $parent->{thumbnail_command}
-        || 'photog-thumbnail';
+    $album->{scale-command} ||= $parent->{scale_command}
+                            || 'photog-scale';
 
 =item
 
-
+The command to watermark an image, default: C<photog-watermark>.
 
 =cut
 
-    $album->{preview_command}
-        ||= $parent->{preview_command}
-        || 'photog-preview';
+    $album->{watermark_command} ||= $parent->{watermark_command}
+                                || 'photog-watermark';
 
-    return $album;
+=item
+
+The command to thumbnail an image, default: C<photog-thumbnail>.
+
+=cut
+
+    $album->{thumbnail_command} ||= $parent->{thumbnail_command}
+                                || 'photog-thumbnail';
+
+=item
+
+The command to composite multiple images into a preview, default: C<photog-preview>.
+
+=cut
+
+    $album->{preview_command} ||= $parent->{preview_command}
+                              || 'photog-preview';
+
+### HALLELUJA!
+    bless $album;
 }
 
 1;

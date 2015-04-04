@@ -12,7 +12,7 @@ _site/bin/photog-thumbnail
 _site/bin/photog-watermark
 _site/dist.ini
 _site/lib/Photography/Website.pm
-_site/lib/Photography/Website/Configure.pm
+_site/lib/Photography/Website/Configuration.pm
 _site/share/static/SourceSansPro-ExtraLight.ttf
 _site/share/static/SourceSansPro-ExtraLight.woff
 _site/share/static/jquery-1.7.2.js
@@ -29,7 +29,7 @@ bin/photog-thumbnail
 bin/photog-watermark
 dist.ini
 lib/Photography/Website.pm
-lib/Photography/Website/Configure.pm
+lib/Photography/Website/Configuration.pm
 share/static/SourceSansPro-ExtraLight.ttf
 share/static/SourceSansPro-ExtraLight.woff
 share/static/jquery-1.7.2.js
