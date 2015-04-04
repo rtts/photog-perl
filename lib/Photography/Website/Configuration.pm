@@ -65,7 +65,7 @@ or a default value.
 
 =head3 Static variables
 
-=over 16
+=over 18
 
 =item source
 
@@ -106,7 +106,7 @@ from the parent album.
 
 =head3 Dynamic variables
 
-=over 16
+=over 18
 
 =item slug
 
@@ -209,7 +209,7 @@ root album will also get the directory 'static' appended to this list.
 
 =head3 Inherited variables
 
-=over 16
+=over 18
 
 =item title
 
