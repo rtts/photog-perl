@@ -1,0 +1,9 @@
+#!/bin/bash
+if [[ -z "$2" ]]; then cat <<EOF
+photog-scale - Scales an image to web size
+
+Usage: photog-scale original.jpg web.jpg
+EOF
+exit; fi
+
+convert "$1" -resize 10000x2160 -quality 88% "$2"
