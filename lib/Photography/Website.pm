@@ -16,8 +16,8 @@ use String::Random        qw(random_regex);
 use Algorithm::Numerical::Shuffle qw(shuffle);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
-our $silent      = 0;
-our $verbose     = 0;
+our $silent  = 0;
+our $verbose = 0;
 
 =head1 NAME
 
@@ -47,14 +47,14 @@ internals of Photog!, read on.
 
 A photography website is generated in two stages. The first stage
 searches the source directory tree for images and optional
-C<photog.ini> files, and processes them into a data structure of nested
-albums. An album is simply a hash of configuration variables one of
-which references a list of further hashes. This stage is kicked off by
-the create_album() function.
+C<photog.ini> files, and processes them into a data structure of
+nested albums. An album is simply a hash of configuration variables
+one of which ($album->{items}) references a list of further
+hashes. This stage is kicked off by the create_album() function.
 
 The second stage loops through this data structure, compares all the
 sources with their destinations, and (re)generates them if needed. It
-builds a website with nested album pages than contain image thubmnails
+builds a website with nested album pages that contain image thubmnails
 and album preview thumbnails. The structure of album pages mirrors the
 structure of the source image directory. This process is started with
 the generate() function.
@@ -85,6 +85,8 @@ sub create_album {
         elsif (-d) {
             $item = create_album($_, $album) || next;
         }
+        $album->{allfiles}->{$item->{destination}} = 1;
+        $album->{allfiles}->{$item->{thumbnail}} = 1;
         push @{$album->{items}}, $item;
     }
     return $album;
@@ -107,17 +109,20 @@ sub generate {
         push @{$album->{protected}}, 'static';
         my $static_source = catdir(dist_dir('Photog'), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
-        remove_tree($static_destination) or die $!;
-        dircopy($static_source, $static_destination) or die $!;
+        dircopy($static_source, $static_destination) and say "/static/";
     }
 
     # Recursively update image files and album pages
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
-            update_image($item) and $outdated = 1;
+            if (update_image($item)) {
+                $outdated = 1;
+            }
         }
         elsif ($item->{type} eq 'album') {
-            generate($item, $album) and $outdated = 1;
+            if (generate($item, $album) and not $item->{unlisted}) {
+                $outdated = 1;
+            }
         }
     }
 
@@ -134,10 +139,11 @@ destination files. Returns true if any images have been (re)generated.
 
 sub update_image {
     my $img           = shift;
-    my $update_needed = shift or
+    my $update_needed = shift || (
         not -f $img->{destination} or
         not -f $img->{thumbnail} or
-        is_newer($img->{source}, $img->{destination});
+        is_newer($img->{source}, $img->{destination})
+    );
 
     if ($update_needed) {
         build_image($img);
@@ -159,19 +165,23 @@ if any changes have been made at the destination directory.
 
 sub update_album {
     my $album         = shift;
-    my $update_needed = shift; # optional
-
-    $update_needed ||= not -f $album->{index} or
+    my $update_needed = shift || ( # optional
+        not -f $album->{index} or
         (not -f $album->{thumbnail} and not $album->{unlisted}) or
-        is_newer($album->{config}, $album->{thumbnail});
+        is_newer($album->{config}, $album->{thumbnail})
+    );
 
-    # Delete all destinations for which no source exists, unless they are protected
-    for my $dest (list($album->{destination})) {
+    if (not -d $album->{destination}) {
+        make_path($album->{destination});
+    }
+
+    # Delete all destinations that do not appear in the allfiles hash, unless they are protected
+    for my $dest (list($album->{destination}), list(catdir($album->{destination}, 'thumbnails'))) {
         my $file = basename($dest);
-        if (not grep {basename($_->{destination}) eq $file} @{$album->{items}}) {
+        if (not exists $album->{allfiles}->{$dest}) {
             if (not grep {$_ eq $file} @{$album->{protected}}) {
-                say "Removing '$dest'";
-                # remove_tree($dest)";
+                say "Removing $dest" unless $silent;
+                remove_tree($dest);
                 $update_needed = 1;
             }
         }
@@ -180,11 +190,9 @@ sub update_album {
     if ($update_needed) {
         build_preview($album) unless $album->{unlisted};
         build_index($album);
-        return 1;
     }
-    else {
-        return 0;
-    }
+
+    return $update_needed;
 }
 
 =item B<build_image>(I<$image>)
@@ -203,19 +211,19 @@ sub build_image {
                $img->{source},
                $img->{watermark},
                $img->{destination},
-           );
+           ) and die "ERROR: Watermark command failed\n";
     }
     else {
         system($img->{scale_command},
                $img->{source},
                $img->{destination},
-           );
+           ) and die "ERROR: Scale command failed\n";
     }
     make_path(dirname($img->{thumbnail}));
     system($img->{thumbnail_command},
            $img->{source},
            $img->{thumbnail},
-       );
+       ) and die "ERROR: Thumbnail command failed\n";
 }
 
 =item B<build_index>(I<$album>)
@@ -229,13 +237,13 @@ dates.
 sub build_index {
     my $album = shift;
 
-    # This defines a function named 'static' to be used in templates
-    # to calculate relative pathnames (which ensure that the website
-    # can be viewed by a browser locally)
+    # This defines a function named 'root' to be used in templates to
+    # calculate the relative pathname to the website root (which
+    # ensures that the website can be viewed by a browser locally)
     my $rel = $album->{url};
     $rel =~ s:[^/]+/:\.\./:g;
     $rel =~ s:^/::;
-    $album->{static} = sub { "$rel$_[0]" };
+    $album->{root} = sub { $rel.$_[0] };
 
     # Calculate and store image sizes and dates
     for (@{$album->{items}}) {
@@ -286,7 +294,7 @@ sub build_preview {
     system($album->{preview_command},
            @images,
            $album->{thumbnail},
-       );
+       ) and die "ERROR: Preview command failed\n";
 }
 
 =item B<select_images>(I<$album>)
@@ -331,8 +339,7 @@ sub list {
     my $dir = shift;
     my @files;
     my @dirs;
-    opendir(my $dh, $dir) or die
-        "ERROR: Cannot read contents of directory '$dir'\n";
+    opendir(my $dh, $dir) or return ();
     while (readdir $dh) {
         next if /^\./;
         push @files, "$dir/$_" if -f "$dir/$_";

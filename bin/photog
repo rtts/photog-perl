@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
+use feature 'say';
 use Cwd;
 use IPC::Cmd 'can_run';
 use Photography::Website;
@@ -75,13 +76,9 @@ implements Photog!'s configuration system. Here is an example
 configuration file:
 
     # This is an example ~/Pictures/photog.ini
-
     title = Super Formosa Photography
-
     watermark = /home/jj/watermark.png
-
     template = /home/jj/frontpage-template.html
-
     destination = /var/www/superformosa.nl
 
 This tells Photog! the title, watermark, template, and destination to
@@ -90,25 +87,36 @@ C<~/Pictures>. The albums that are created from the subdirectories
 inside C<~/Pictures> will also have the same title, watermark,
 template and destination, because these values are inherited by all
 child albums (unless they are overridden by additional C<photog.ini>
-files).
+files). Again, for a complete list of all possible configuration
+variables consult the Photography::Website::Configure(3) manual page.
 
-Besides controlling the behavior of Photog!, all configuration options
-become an attribute of the C<album> object that is passed to the
-template. This makes it possible to make up your own configuration
-variables inside a C<photog.ini>, and then use their values when
-writing a custom template. Your own variables will propagate to all
-child albums just like the regular configuration options. Here is an
-example template (see Template::Manual::Intro(3) for an introduction
-to the template syntax):
+=head1 TEMPLATING
 
-    [% FOREACH item in album.items %]
+Photog! comes with a file named C<template.html> that uses
+Template::Toolkit syntax to render each album's C<index.html>. The
+default template uses Javascript to "pack" images into horizontal
+rows. You can supply the path to your own template with the
+B<template> configuration variable.
+
+All the configuration options automatically become template
+variables. An additional template variable, B<items>, contains the
+sorted list of the album's children. Here is an example template (see
+Template::Manual::Intro(3) for an introduction to the template
+syntax):
+
+    <h1>Welcome to [% title %]!</h1>
+    <p>These are my photo albums:</p>
+    [% FOREACH item in items %]
       [% IF item.type == 'album' %]
         <img src="[% item.src %]" title="[% item.my_custom_title %]">
       [% ENDIF %]
     [% ENDFOR %]
 
-This example references the attribute C<my_custom_title>. This will return
-whatever value you have set in the album's C<photog.ini> for this variable.
+As you can see, this example references the attribute
+C<my_custom_title> of each child album. This is not an "official"
+configuration option, but as long as you set it yourself in the
+album's C<photog.ini> it will be available to all child albums just
+like the regular configuration variables.
 
 =head1 ADDITIONAL COMMANDS
 
@@ -117,16 +125,15 @@ C<photog-thumbnail>, and C<photog-preview> to generate scaled,
 watermarked, thumbnail and preview images. These commands are simple
 shell scripts that have been installed to the same path as the
 C<photog> command. They call ImageMagick to do the actual image
-processing. You can also call these commands directly. They have no
-manpages but they do print out a simple usage instruction when called
-with no arguments. If you want to change Photog!'s behavior for
-generating images and thumbnails, you can supply your own commands in
-the configuration file (see directly above).
+processing. You can also call these commands directly. Each command
+prints out a simple usage instruction when called with no
+arguments. If you want to change Photog!'s behavior for generating
+images and thumbnails, you can supply your own commands in the
+configuration file (see Photography::Website::Configure(3)).
 
 =head1 SEE ALSO
 
-Photography::Website(3), the Perl module that takes care of the
-actual site generation.
+Photography::Website(3), Photography::Website::Configure(3)
 
 =head1 AUTHOR
 

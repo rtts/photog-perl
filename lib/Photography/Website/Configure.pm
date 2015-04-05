@@ -90,7 +90,7 @@ The full path to the fullscreen image in the destination directory.
 
 =cut
 
-    $img->{destination} = catfile($parent->{root}, $img->{url});
+    $img->{destination} = catfile($parent->{root}, substr($img->{url}, 1));
 
 =item B<thumbnail>
 
@@ -132,14 +132,30 @@ sub album {
     # Special case for root albums
     # $parent = $album if not $parent;
 
-    $album->{type} = 'album';
-    $album->{parent} = $parent;
-
     # Implementation of the "oblivious" feature
     if (not $album) {
         return if $parent->{oblivious};
         $album = {};
     }
+
+    # Implementation of the "private" feature
+    if (defined $album->{slug} and $album->{slug} eq 'private') {
+        $album->{slug} = random_regex('[1-9][a-hjkp-z2-9]{15}');
+        $album->{unlisted} = "true";
+        save_config($album, $source);
+    }
+
+    $album->{type} = 'album';
+    $album->{parent} = $parent;
+
+    # Instantiate the global allfiles hash
+    if (not $parent) {
+        $album->{allfiles} = {};
+    }
+    else {
+        $album->{allfiles} = $parent->{allfiles};
+    }
+
 
 =item I<Static variables>
 
@@ -203,13 +219,6 @@ are only accessible to people who know the secret URL.
 =cut
 
     $album->{slug} ||= basename($source);
-
-    if ($album->{slug} eq 'private') {
-        $album->{slug} = random_regex('[1-9][a-hjkp-z2-9]{15}');
-        $album->{unlisted} = "true";
-        save_config($album, $source);
-    }
-
 
 =item B<url>
 
@@ -294,7 +303,7 @@ on a page.
 
 =cut
 
-    $album->{date} = DateTime->from_epoch(
+    $album->{date} ||= DateTime->from_epoch(
         epoch => (stat $source)[9]);
 
 =item B<protected>
@@ -306,7 +315,10 @@ appended to this list.
 
 =cut
 
-    $album->{protected} ||= ['index.html', 'thumbnails'];
+    if (not exists $album->{protected}) {
+        $album->{protected} = [];
+    }
+    push @{$album->{protected}}, ('index.html', 'thumbnails');
 
 =item I<Inherited variables>
 
@@ -485,7 +497,9 @@ sub get_config {
     if (-f $file) {
         return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1) };
     }
-    return 0;
+    else {
+        return 0;
+    }
 }
 
 sub save_config {
