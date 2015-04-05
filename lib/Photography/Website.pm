@@ -124,9 +124,9 @@ sub generate {
     return update_album($album, $outdated);
 }
 
-=item B<update_image>(I<$img>[, I<$force>])
+=item B<update_image>(I<$image>[, I<$force>])
 
-Given an $img node, checks if the image source is newer than the
+Given an $image node, checks if the image source is newer than the
 destination. If needed, or if $force is true, it builds new
 destination files. Returns true if any images have been (re)generated.
 
@@ -187,7 +187,7 @@ sub update_album {
     }
 }
 
-=item B<build_image>(I<$img>)
+=item B<build_image>(I<$image>)
 
 Builds the image's destination files, by shelling out to the the
 watermark or scale and thumbnail commands.
