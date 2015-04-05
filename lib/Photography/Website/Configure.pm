@@ -130,7 +130,7 @@ sub album {
     my $album  = get_config($source);
 
     # Special case for root albums
-    $parent = $album if not $parent;
+    # $parent = $album if not $parent;
 
     $album->{type} = 'album';
     $album->{parent} = $parent;
@@ -175,8 +175,13 @@ from the parent album.
 
 =cut
 
-    $album->{root} = $parent->{root} || $parent->{destination} || die
-        "ERROR: Destination not specified";
+    if ($parent) {
+        $album->{root} = $parent->{root};
+    }
+    else {
+        $album->{root} = $album->{destination} || die
+            "ERROR: Destination not specified";
+    }
 
 =item I<Dynamic variables>
 
@@ -277,7 +282,7 @@ false (except for the root album)
 
 =cut
 
-    $album->{unlisted} ||= ($album == $parent);
+    $album->{unlisted} ||= (not defined $album->{parent});
 
 =item B<date>
 
@@ -314,7 +319,7 @@ show an album name.
 
 =cut
 
-    if (not exists $album->{tittle}) {
+    if (not exists $album->{title}) {
         $album->{title} = $parent->{title}
             || "My Photography Website";
     }
@@ -389,11 +394,11 @@ who haven't paid yet. Defaults to true.
 =cut
 
     if (not exists $album->{fullscreen}) {
-        if (not defined $parent->{fullscreen}) {
-            $album->{fullscreen} = 1;
+        if ($album->{parent}) {
+            $album->{fullscreen} = $parent->{fullscreen};
         }
         else {
-            $album->{fullscreen} = $parent->{fullscreen};
+            $album->{fullscreen} = 1;
         }
     }
 

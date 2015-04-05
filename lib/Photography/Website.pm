@@ -39,10 +39,11 @@ Photography::Website
 =head1 DESCRIPTION
 
 The Photography::Website module contains the core of the Photog!
-photography website generator. If you're looking to generate websites,
-please refer to the photog(3) manpage for instructions and
-configuration options. If you want to learn about the internals of
-Photog!, read on.
+photography website generator. Please refer to photog(3) for a more
+general introduction on how to run Photog! from the command line and
+how to configure it. All of the configuration options are documented
+in Photography::Website::Configure(1). If you want to learn about the
+internals of Photog!, read on.
 
 A photography website is generated in two stages. The first stage
 searches the source directory tree for images and optional
@@ -89,22 +90,20 @@ sub create_album {
     return $album;
 }
 
-=item B<generate>(I<$album>[, I<$parent>])
+=item B<generate>(I<$album>)
 
 The second main entry point that generates the actual website images
 and HTML files at the destinations specified inside the $album data
-structure. The second parameter, $parent, is only used when called
-recursively. Returns nothing.
+structure. Returns nothing.
 
 =cut
 
 sub generate {
     my $album    = shift;
-    my $parent   = shift; # optional;
     my $outdated = 0;
 
     # Copy static files to destination root
-    if (not $parent) {
+    if (not $album->{parent}) {
         push @{$album->{protected}}, 'static';
         my $static_source = catdir(dist_dir('Photog'), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
@@ -122,7 +121,7 @@ sub generate {
         }
     }
 
-    return update_album($album, $outdated, $parent);
+    return update_album($album, $outdated);
 }
 
 =item B<update_image>(I<$img>[, I<$force>])
@@ -149,21 +148,18 @@ sub update_image {
     }
 }
 
-=item B<update_album>(I<$album>[, I<$force>, I<$parent>])
+=item B<update_album>(I<$album>[, I<$force>])
 
 Given an $album node, first deletes any destination files that don't
 have a corresponding source. Then it (re)builds the album's preview
-and index if an update is needed or if $force is true. If a $parent is
-provided, it will be passed on to the build_preview()
-function. Returns true if any changes have been made at the
-destination directory.
+and index if an update is needed or if $force is true. Returns true
+if any changes have been made at the destination directory.
 
 =cut
 
 sub update_album {
     my $album         = shift;
     my $update_needed = shift; # optional
-    my $parent        = shift; # optional
 
     $update_needed ||= not -f $album->{index} or
         (not -f $album->{thumbnail} and not $album->{unlisted}) or
@@ -171,19 +167,18 @@ sub update_album {
 
     # Delete all destinations for which no source exists, unless they are protected
     for my $dest (list($album->{destination})) {
-        say "checking $dest...";
         my $file = basename($dest);
         if (not grep {basename($_->{destination}) eq $file} @{$album->{items}}) {
-            say "uh-oh, $dest is not in album->items...";
             if (not grep {$_ eq $file} @{$album->{protected}}) {
-                say ">>>>>>>>remove_tree($dest)";
+                say "Removing '$dest'";
+                # remove_tree($dest)";
                 $update_needed = 1;
             }
         }
     }
 
     if ($update_needed) {
-        build_preview($album, $parent) unless $album->{unlisted};
+        build_preview($album) unless $album->{unlisted};
         build_index($album);
         return 1;
     }
@@ -260,20 +255,17 @@ sub build_index {
         || die $tt->error();
 }
 
-=item B<create_preview>(I<$album>[, I<$parent>])
+=item B<create_preview>(I<$album>)
 
 Creates an album preview image by making a random selection of the
-album's images and calling the C<photog-preview> command. The optional
-$parent argument is passed to the select_images() function (see
-below).
+album's images and calling the C<photog-preview> command.
 
 =cut
 
 sub build_preview {
     my $album  = shift;
-    my $parent = shift; # optional
 
-    my @images = select_images($album, $parent);
+    my @images = select_images($album);
     my $size = scalar @images;
     if ($size < 3) {
         say "WARNING: Not enough images available in '$album->{name}' to create a preview";
@@ -297,27 +289,26 @@ sub build_preview {
        );
 }
 
-=item B<select_images>(I<$album>[, I<$parent>])
+=item B<select_images>(I<$album>)
 
 Returns a list of image paths that are eligible for inclusion in an
-album preview. If an optional $parent is supplied, it makes sure that
-the list only contains images whose filename does not appear in the
-parent album. The reason for this is that the author of Photog! likes
-to show the best photographs from an album on the front page, but not
-also have those photographs included in an album preview.
+album preview. It makes sure that the list only contains images whose
+filename does not appear in the parent album. The reason for this is
+that the author of Photog! likes to show the best photographs from an
+album on the front page, but not also have those photographs included
+in an album preview.
 
 =cut
 
 sub select_images {
     my $album  = shift;
-    my $parent = shift; # optional
-    if ($parent) {
+    if ($album->{parent}) {
 
         # Read the following lines from end to beginning
         my %excl = map {$_ => 1}
             map {$_->{href}}
             grep {$_->{type} eq 'image'}
-            @{$parent->{items}};
+            @{$album->{parent}->{items}};
 
         return map {$_->{thumbnail}}
             grep {not $excl{$_->{href}}}
@@ -328,12 +319,6 @@ sub select_images {
         return map {$_->{thumbnail}} @{$album->{items}};
     }
 }
-
-=back
-
-=head2 Helper Functions
-
-=over
 
 =item B<list>(I<$dir>)
 
