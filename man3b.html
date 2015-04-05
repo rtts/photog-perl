@@ -1,0 +1,264 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<link rel="stylesheet" href="man.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+
+
+<h1 id="NAME">NAME</h1>
+
+<p>Photography::Website::Configure</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This module contains the configuration logic of Photog! the photography website generator. See photog(3) for the documentation about the command-line interface and see Photography::Website(1) for documentation about the Perl interface.</p>
+
+<p>What follows is a comprehensive list of all configuration options currently in use, with a short description of their usage and their default value.</p>
+
+<h2 id="Image-variables">Image variables</h2>
+
+<dl>
+
+<dt id="name"><b>name</b></dt>
+<dd>
+
+<p>The image filename without the extension. Is used by the default template as the caption when the image is viewed fullscreen.</p>
+
+</dd>
+<dt id="url"><b>url</b></dt>
+<dd>
+
+<p>The absolute URL of the fullscreen image. This is used to calculate the image destination. Templates should use the relative URL (see next).</p>
+
+</dd>
+<dt id="href"><b>href</b></dt>
+<dd>
+
+<p>The relative URL of the full-size image, i.e., the image filename.</p>
+
+</dd>
+<dt id="src"><b>src</b></dt>
+<dd>
+
+<p>The relative URL of the image thumbnail, i.e., <code>thumbnails/$filename</code>.</p>
+
+</dd>
+<dt id="source"><b>source</b></dt>
+<dd>
+
+<p>The full path to the original image in the source directory.</p>
+
+</dd>
+<dt id="destination"><b>destination</b></dt>
+<dd>
+
+<p>The full path to the fullscreen image in the destination directory.</p>
+
+</dd>
+<dt id="thumbnail"><b>thumbnail</b></dt>
+<dd>
+
+<p>The path to the image thumbnail.</p>
+
+</dd>
+</dl>
+
+<h2 id="Album-variables">Album variables</h2>
+
+<p>There are three types of album configuration variables: static variables, dynamic variables, and inherited variables. Static variables cannot be changed from a configuration file. Dynamic variables can be set in a configuration or they are calculated dynamically. Inherited variables are either set from a configuration file, inherited from the parent, or a default value.</p>
+
+<dl>
+
+<dt id="Static-variables"><i>Static variables</i></dt>
+<dd>
+
+</dd>
+<dt id="source1"><b>source</b></dt>
+<dd>
+
+<p>The source directory.</p>
+
+</dd>
+<dt id="config"><b>config</b></dt>
+<dd>
+
+<p>Path to the album&#39;s <code>photog.ini</code></p>
+
+</dd>
+<dt id="name1"><b>name</b></dt>
+<dd>
+
+<p>Directory basename of the album, currently only used for debugging purposes.</p>
+
+</dd>
+<dt id="root"><b>root</b></dt>
+<dd>
+
+<p>The destination directory of the root album. This is always inherited from the parent album.</p>
+
+</dd>
+<dt id="Dynamic-variables"><i>Dynamic variables</i></dt>
+<dd>
+
+</dd>
+<dt id="slug"><b>slug</b></dt>
+<dd>
+
+<p>A slug is the part of the URL that identifies an album, e.g. <code>www.example.com/slug/</code>. The default value is the directory&#39;s name, so be careful not to use characters in directory names that are not allowed in URLs, like spaces. Or, simply override this value to choose an appropriate URL for each album.</p>
+
+<p>The special value of &quot;private&quot; will cause a random slug to be generated consisting of 16 alphanumeric characters, which will immediately be saved to the <code>photog.ini</code> file, replacing the original &quot;private&quot; value. In addition, the variable <b>unlisted</b> will be set to true. Use this for creating private albums that are only accessible to people who know the secret URL.</p>
+
+</dd>
+<dt id="url1"><b>url</b></dt>
+<dd>
+
+<p>Calculated by concatenating the parent url and the album slug. Overriding this option allows the source directories to be differently organized than the destination directories.</p>
+
+</dd>
+<dt id="href1"><b>href</b></dt>
+<dd>
+
+<p>The album link for use inside the &lt;a&gt; tag in the template.</p>
+
+</dd>
+<dt id="src1"><b>src</b></dt>
+<dd>
+
+<p>The album preview image for use inside the &lt;img&gt; tag in the template. Width and height will also be made available to the template.</p>
+
+</dd>
+<dt id="destination1"><b>destination</b></dt>
+<dd>
+
+<p>The album&#39;s destination directory. Calculated by concatenating the root destination directory and the album&#39;s URL. Although possible, overriding this option for subdirectories is not recommended. Use the <b>url</b> option instead (see above).</p>
+
+</dd>
+<dt id="thumbnail1"><b>thumbnail</b></dt>
+<dd>
+
+<p>Path to the album preview image, for use a thumbnail in the parent album. Defaults to the file <code>all.jpg</code> in subdirectory <code>thumbnails</code> inside the destination directory.</p>
+
+</dd>
+<dt id="index"><b>index</b></dt>
+<dd>
+
+<p>Path to to the album&#39;s <code>index.html</code>.</p>
+
+</dd>
+<dt id="unlisted"><b>unlisted</b></dt>
+<dd>
+
+<p>Boolean value that specifies whether this album will be diplayed on the parent album. The album page remains accessible to people who know the URL. Defaults to <code>false</code>. Not inherited, always defaults to false (except for the root album)</p>
+
+</dd>
+<dt id="date"><b>date</b></dt>
+<dd>
+
+<p>The ISO 8601 date and optionally time of this album. This is used when sorting items chronologically. The default is the directory&#39;s modification date. The default template never actually shows dates, but it can also be used to determine the placement of album previews on a page.</p>
+
+</dd>
+<dt id="protected"><b>protected</b></dt>
+<dd>
+
+<p>A list of filenames that will not be automatically deleted at the album&#39;s destination directory. Defaults to (&#39;index.html&#39;, &#39;thumbnails&#39;). The root album will also get the directory &#39;static&#39; appended to this list.</p>
+
+</dd>
+<dt id="Inherited-variables"><i>Inherited variables</i></dt>
+<dd>
+
+</dd>
+<dt id="title"><b>title</b></dt>
+<dd>
+
+<p>In the default template, the title appears at the top of the page. The default value is &quot;My Photography Website&quot;. Please set this to something more catchy. You can also override it for specific albums to show an album name.</p>
+
+</dd>
+<dt id="copyright"><b>copyright</b></dt>
+<dd>
+
+<p>In the default template, the copyright notice appears at the bottom of the page. The default value is empty.</p>
+
+</dd>
+<dt id="template"><b>template</b></dt>
+<dd>
+
+<p>Path to an HTML file containing directives in Template::Toolkit syntax. The current album will be made available as the variable &quot;album&quot;, from where all additional configuration variables can be accessed using dot syntax, i.e., album.title, album.copyright etc. You can even make up your own configuration variables in <code>photog.ini</code> and have them available in the template. The default is the file <code>template.html</code> that&#39;s included with Photog!. Use it as a starting point to create your own template!</p>
+
+</dd>
+<dt id="preview"><b>preview</b></dt>
+<dd>
+
+<p>An album preview is a thumbnail image of the album that contains a number of smaller images. This option sets the number of preview images for an album. Allowed values are 3, 6, and 9. The default is 9.</p>
+
+</dd>
+<dt id="watermark"><b>watermark</b></dt>
+<dd>
+
+<p>The path to a transparent PNG file that will be used to watermark all fullscreen images in an album. The command <code>photog-watermark</code> is called to do the actual watermarking, and it currently places the watermark in the lower right corner. The default is to not watermark website images.</p>
+
+</dd>
+<dt id="sort"><b>sort</b></dt>
+<dd>
+
+<p>Photos are always sorted according to EXIF date. Possible sort orders are: <code>ascending</code> and <code>descending</code>. The default value is <code>descending</code>.</p>
+
+</dd>
+<dt id="fullscreen"><b>fullscreen</b></dt>
+<dd>
+
+<p>A boolean to indicate whether large images should be made available. Use this to prevent access to full-size images by clients who haven&#39;t paid yet. Defaults to true.</p>
+
+</dd>
+<dt id="oblivious"><b>oblivious</b></dt>
+<dd>
+
+<p>A boolean value that specifies whether <code>photog.ini</code> files are required. If true, Photog! will only consider a subdirectory an album when it contains a <code>photog.ini</code> file, even if the file is empty. Defaults to false.</p>
+
+</dd>
+<dt id="scale_command"><b>scale_command</b></dt>
+<dd>
+
+<p>The path to a command to convert an original image to a fullscreen web-image. The command will receive 2 arguments: The source image path and the destination image path. The default is <code>photog-scale</code>, which will scale an image to measure 2160 pixels vertically.</p>
+
+</dd>
+<dt id="watermark_command"><b>watermark_command</b></dt>
+<dd>
+
+<p>The command that does the image watermarking. The command will receive 3 arguments: Paths to the source image, the watermark image, and the destination image. The default command is <code>photog-watermark</code> which places the watermark file in the lower-right corner.</p>
+
+</dd>
+<dt id="thumbnail_command"><b>thumbnail_command</b></dt>
+<dd>
+
+<p>The path to a command that generates image thumbnails. The command receives 2 arguments: The source image path and the thumbnail destination path. The default is <code>photog-thumbnail</code>, which performs quite a bit of sharpening to make sure that the thumbnail doesn&#39;t become blurry after resizing.</p>
+
+</dd>
+<dt id="preview_command"><b>preview_command</b></dt>
+<dd>
+
+<p>The command that generates album previews by compositing multiple thumbnails together. It will receive paths to the source images&#39; thumbnails as its arguments, and the path to a destination file as its final argument. Currently, Photog! will only request previews of 3, 6, or 9 images.</p>
+
+</dd>
+</dl>
+
+<h1 id="SEE-ALSO">SEE ALSO</h1>
+
+<p>photog(3), Photography::Website(1)</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Photog! was written by Jaap Joris Vens &lt;jj@rtts.eu&gt;, and is used to create his personal photography website at http://www.superformosa.nl/</p>
+
+
+</body>
+
+</html>
+
+
