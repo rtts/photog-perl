@@ -40,9 +40,9 @@ Photography::Website
 
 The Photography::Website module contains the core of the Photog!
 photography website generator. Please refer to photog(3) for a more
-general introduction on how to run Photog! from the command line and
-how to configure it. All of the configuration options are documented
-in Photography::Website::Configure(1). If you want to learn about the
+general introduction on how to run Photog! and how to configure
+it. All of the configuration options are documented in
+Photography::Website::Configure(1). If you want to learn about the
 internals of Photog!, read on.
 
 A photography website is generated in two stages. The first stage

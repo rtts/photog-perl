@@ -62,36 +62,53 @@ Be more verbose
 =head1 CONFIGURATION
 
 Photog! reads configuration directives from a file named C<photog.ini>
-inside the current directory. Subdirectories can contain additional
+inside the source directory. Subdirectories can contain additional
 configuration files that override certain settings from the root
-configuration file. Config files consist of a number of C<variable =
-value> directives. Lines starting with a C<#> are ignored.
-Photog!'s default settings can be overridden by placing a file named
-C<photog.ini> inside an album's source directory that contains lines
-with C<variable = value> directives. A value set in the
-configuration file will become the new default value for all child
-albums.
+configuration file. A value set in the configuration file will become
+the new default value for all child albums.
+
+Config files consist of a number of C<variable = value>
+directives. Empty lines and lines starting with a C<#> are
+ignored. All the possible configuration variables are documented in
+the manual page of Photography::Website::Configure(3), the module that
+implements Photog!'s configuration system. Here is an example
+configuration file:
+
+    # This is an example ~/Pictures/photog.ini
+
+    title = Super Formosa Photography
+
+    watermark = /home/jj/watermark.png
+
+    template = /home/jj/frontpage-template.html
+
+    destination = /var/www/superformosa.nl
+
+This tells Photog! the title, watermark, template, and destination to
+use when generating the album that corresponds to the directory
+C<~/Pictures>. The albums that are created from the subdirectories
+inside C<~/Pictures> will also have the same title, watermark,
+template and destination, because these values are inherited by all
+child albums (unless they are overridden by additional C<photog.ini>
+files).
 
 Besides controlling the behavior of Photog!, all configuration options
-are passed along to the template where they can be accessed as the
-attribute of each "item" object. Here is an example (see Template::Manual::Intro(3) for an
-introduction to the template syntax):
+become an attribute of the C<album> object that is passed to the
+template. This makes it possible to make up your own configuration
+variables inside a C<photog.ini>, and then use their values when
+writing a custom template. Your own variables will propagate to all
+child albums just like the regular configuration options. Here is an
+example template (see Template::Manual::Intro(3) for an introduction
+to the template syntax):
 
-    [% FOREACH item in items %]
-      [% IF item.type == 'image' %]
-        <img src="[% item.src %]">
+    [% FOREACH item in album.items %]
+      [% IF item.type == 'album' %]
+        <img src="[% item.src %]" title="[% item.my_custom_title %]">
       [% ENDIF %]
     [% ENDFOR %]
 
-This makes it possible to make up your own configuration variables
-inside a C<photog.ini>, and then use their values when writing a
-custom template. Your own variables will propagate to all child albums
-just like the regular configuration options.
-
-Images and albums are simply hash references with a number of
-attributes. In code, these attributes can be accessed as follows:
-C<$album->{url}>. In templates you can use the dot-syntax, e.g., C<[%
-if item.type == 'image %]>. 
+This example references the attribute C<my_custom_title>. This will return
+whatever value you have set in the album's C<photog.ini> for this variable.
 
 =head1 ADDITIONAL COMMANDS
 
