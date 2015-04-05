@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 if [[ -z "$4" ]]; then cat <<EOF
 photog-preview: Composes images to together to create an album preview
 

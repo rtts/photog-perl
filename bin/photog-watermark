@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 if [[ -z "$2" ]]; then cat <<EOF
 photog-watermark - Watermarks an image and scales it to web size
 

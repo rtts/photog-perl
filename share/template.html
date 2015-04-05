@@ -4,13 +4,13 @@
     <title>[% title %]</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="[% static('main.css') %]">
-    <link rel="stylesheet" href="[% static('magnific-popup.css') %]">
+    <link rel="stylesheet" type="text/css" href="[% root('static/main.css') %]">
+    <link rel="stylesheet" href="[% root('static/magnific-popup.css') %]">
   </head>
   <body>
 
     <div id="header">
-      <h1><a href="[% static('index.html') %]">[% title %]</a></h1>
+      <h1><a href="[% root('index.html') %]">[% title %]</a></h1>
       <nav>
         <a href="/">home</a>
         <a href="/about.html">about</a>
@@ -41,8 +41,8 @@
       </p>
     </div>
 
-    <script src="[% static('jquery-1.7.2.min.js') %]"></script>
-    <script src="[% static('jquery.magnific-popup.js') %]"></script>
+    <script src="[% root('static/jquery-1.7.2.min.js') %]"></script>
+    <script src="[% root('static/jquery.magnific-popup.js') %]"></script>
     <script>
       /* Derived from
        * http://blog.vjeux.com/2012/image/image-layout-algorithm-google-plus.html

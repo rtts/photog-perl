@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use feature 'say';
 
-use Photography::Website::Configuration;
+use Photography::Website::Configure;
 use DateTime;
 use File::Path            qw(make_path remove_tree);
 use File::Basename        qw(basename dirname);
@@ -16,8 +16,8 @@ use String::Random        qw(random_regex);
 use Algorithm::Numerical::Shuffle qw(shuffle);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
-our $silent      = 0;
-our $verbose     = 0;
+our $silent  = 0;
+our $verbose = 0;
 
 =head1 NAME
 
@@ -39,33 +39,27 @@ Photography::Website
 =head1 DESCRIPTION
 
 The Photography::Website module contains the core of the Photog!
-photography website generator. If you're looking to generate websites,
-please refer to the photog(3) manpage for instructions and
-configuration options. If you want to learn about the internals of
-Photog!, read on.
+photography website generator. Please refer to photog(3) for a more
+general introduction on how to run Photog! and how to configure
+it. All of the configuration options are documented in
+Photography::Website::Configure(1). If you want to learn about the
+internals of Photog!, read on.
 
 A photography website is generated in two stages. The first stage
 searches the source directory tree for images and optional
-C<photog.ini> files, and processes them into a data structure of nested
-albums. An album is simply a hash of configuration variables one of
-which references a list of further hashes. This stage is kicked off by
-the create_album() function.
+C<photog.ini> files, and processes them into a data structure of
+nested albums. An album is simply a hash of configuration variables
+one of which ($album->{items}) references a list of further
+hashes. This stage is kicked off by the create_album() function.
 
 The second stage loops through this data structure, compares all the
 sources with their destinations, and (re)generates them if needed. It
-builds a website with nested album pages than contain image thubmnails
+builds a website with nested album pages that contain image thubmnails
 and album preview thumbnails. The structure of album pages mirrors the
 structure of the source image directory. This process is started with
 the generate() function.
 
 =head1 FUNCTIONS
-
-The rest of this manpage is a description of the module's functions.
-They are divided into three categories.  First, functions that process
-the source files and directories.  Second, functions that generate the
-website resources. Third, simple helper functions.
-
-=head2 Source Processing Functions
 
 =over
 
@@ -81,96 +75,63 @@ the source directory tree.
 sub create_album {
     my $source = shift;
     my $parent = shift; # optional
-    my $album  = Photography::Website::Configuration::new($source, $parent) || return;
+    my $album  = Photography::Website::Configure::album($source, $parent) || return;
 
     for (list($source)) {
         my $item;
         if (-f) {
-            $item = create_img($_, $album) || next;
+            $item = Photography::Website::Configure::image($_, $album) || next;
         }
         elsif (-d) {
             $item = create_album($_, $album) || next;
         }
+        $album->{allfiles}->{$item->{destination}} = 1;
+        $album->{allfiles}->{$item->{thumbnail}} = 1;
         push @{$album->{items}}, $item;
     }
     return $album;
 }
 
-=item B<create_img>(I<$source>, I<$parent>)
-
-Tries to create an image node of the file referred to by $source. Also
-requires a $parent that references an album node. It returns a false
-value if no image was created, or a reference to an image hash.
-
-=cut
-
-sub create_img {
-    my $source = shift;
-    my $parent = shift;
-    return if not is_image($source);
-    my $img = {};
-    my $filename = basename($source);
-
-    # Populate image hash
-    $img->{type}   = 'image';
-    $img->{name}   = strip_suffix($filename);
-    $img->{url}    = $parent->{url} . $filename;
-    $img->{href}   = $filename;
-    $img->{src}    = "thumbnails/$filename";
-    $img->{source} = $source;
-    $img->{destination} = catfile($parent->{root}, $img->{url});
-    $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
-    $img->{watermark}   = $parent->{watermark};
-    $img->{scale_command}     = $parent->{scale_command};
-    $img->{watermark_command} = $parent->{watermark_command};
-    $img->{thumbnail_command} = $parent->{thumbnail_command};
-    return $img;
-}
-
-=back
-
-=head2 Site Generation Functions
-
-=over
-
-=item B<generate>(I<$album>[, I<$parent>])
+=item B<generate>(I<$album>)
 
 The second main entry point that generates the actual website images
 and HTML files at the destinations specified inside the $album data
-structure. The second parameter, $parent, is only used when called
-recursively. Returns nothing.
+structure. Returns nothing.
 
 =cut
 
 sub generate {
     my $album    = shift;
-    my $parent   = shift; # optional;
     my $outdated = 0;
 
     # Copy static files to destination root
-    if (not $parent) {
+    if (not $album->{parent}) {
         push @{$album->{protected}}, 'static';
         my $static_source = catdir(dist_dir('Photog'), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
-        dircopy($static_source, $static_destination) or die $!;
+        dircopy($static_source, $static_destination) and say "/static/";
     }
 
     # Recursively update image files and album pages
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
-            update_image($item) and $outdated = 1;
+            if (update_image($item)) {
+                $outdated = 1;
+            }
         }
         elsif ($item->{type} eq 'album') {
-            generate($item, $album) and $outdated = 1;
+            if (generate($item, $album) and not $item->{unlisted}) {
+                $outdated = 1;
+            }
         }
     }
 
-    return update_album($album, $outdated, $parent);
+    return update_album($album, $outdated);
 }
 
-=item B<update_image>(I<$img>[, I<$force>])
+=item B<update_image>(I<$image>[, I<$force>])
 
-Given an $img node, checks if the image source is newer than the
+Given an $image node, checks if the image source is newer than the
 destination. If needed, or if $force is true, it builds new
 destination files. Returns true if any images have been (re)generated.
 
@@ -178,10 +139,11 @@ destination files. Returns true if any images have been (re)generated.
 
 sub update_image {
     my $img           = shift;
-    my $update_needed = shift or
+    my $update_needed = shift || (
         not -f $img->{destination} or
         not -f $img->{thumbnail} or
-        is_newer($img->{source}, $img->{destination});
+        is_newer($img->{source}, $img->{destination})
+    );
 
     if ($update_needed) {
         build_image($img);
@@ -192,50 +154,48 @@ sub update_image {
     }
 }
 
-=item B<update_album>(I<$album>[, I<$force>, I<$parent>])
+=item B<update_album>(I<$album>[, I<$force>])
 
 Given an $album node, first deletes any destination files that don't
 have a corresponding source. Then it (re)builds the album's preview
-and index if an update is needed or if $force is true. If a $parent is
-provided, it will be passed on to the build_preview()
-function. Returns true if any changes have been made at the
-destination directory.
+and index if an update is needed or if $force is true. Returns true
+if any changes have been made at the destination directory.
 
 =cut
 
 sub update_album {
     my $album         = shift;
-    my $update_needed = shift; # optional
-    my $parent        = shift; # optional
-
-    $update_needed ||= not -f $album->{index} or
+    my $update_needed = shift || ( # optional
+        not -f $album->{index} or
         (not -f $album->{thumbnail} and not $album->{unlisted}) or
-        is_newer($album->{config}, $album->{thumbnail});
+        is_newer($album->{config}, $album->{thumbnail})
+    );
 
-    # Delete all destinations for which no source exists, unless they are protected
-    for my $dest (list($album->{destination})) {
-        say "checking $dest...";
+    if (not -d $album->{destination}) {
+        make_path($album->{destination});
+    }
+
+    # Delete all destinations that do not appear in the allfiles hash, unless they are protected
+    for my $dest (list($album->{destination}), list(catdir($album->{destination}, 'thumbnails'))) {
         my $file = basename($dest);
-        if (not grep {basename($_->{destination}) eq $file} @{$album->{items}}) {
-            say "uh-oh, $dest is not in album->items...";
+        if (not exists $album->{allfiles}->{$dest}) {
             if (not grep {$_ eq $file} @{$album->{protected}}) {
-                say ">>>>>>>>remove_tree($dest)";
+                say "Removing $dest" unless $silent;
+                remove_tree($dest);
                 $update_needed = 1;
             }
         }
     }
 
     if ($update_needed) {
-        build_preview($album, $parent) unless $album->{unlisted};
+        build_preview($album) unless $album->{unlisted};
         build_index($album);
-        return 1;
     }
-    else {
-        return 0;
-    }
+
+    return $update_needed;
 }
 
-=item B<build_image>(I<$img>)
+=item B<build_image>(I<$image>)
 
 Builds the image's destination files, by shelling out to the the
 watermark or scale and thumbnail commands.
@@ -251,19 +211,19 @@ sub build_image {
                $img->{source},
                $img->{watermark},
                $img->{destination},
-           );
+           ) and die "ERROR: Watermark command failed\n";
     }
     else {
         system($img->{scale_command},
                $img->{source},
                $img->{destination},
-           );
+           ) and die "ERROR: Scale command failed\n";
     }
     make_path(dirname($img->{thumbnail}));
     system($img->{thumbnail_command},
            $img->{source},
            $img->{thumbnail},
-       );
+       ) and die "ERROR: Thumbnail command failed\n";
 }
 
 =item B<build_index>(I<$album>)
@@ -277,13 +237,13 @@ dates.
 sub build_index {
     my $album = shift;
 
-    # This defines a function named 'static' to be used in templates
-    # to calculate relative pathnames (which ensure that the website
-    # can be viewed by a browser locally)
+    # This defines a function named 'root' to be used in templates to
+    # calculate the relative pathname to the website root (which
+    # ensures that the website can be viewed by a browser locally)
     my $rel = $album->{url};
     $rel =~ s:[^/]+/:\.\./:g;
     $rel =~ s:^/::;
-    $album->{static} = sub { "$rel$_[0]" };
+    $album->{root} = sub { $rel.$_[0] };
 
     # Calculate and store image sizes and dates
     for (@{$album->{items}}) {
@@ -303,20 +263,17 @@ sub build_index {
         || die $tt->error();
 }
 
-=item B<create_preview>(I<$album>[, I<$parent>])
+=item B<create_preview>(I<$album>)
 
 Creates an album preview image by making a random selection of the
-album's images and calling the C<photog-preview> command. The optional
-$parent argument is passed to the select_images() function (see
-below).
+album's images and calling the C<photog-preview> command.
 
 =cut
 
 sub build_preview {
     my $album  = shift;
-    my $parent = shift; # optional
 
-    my @images = select_images($album, $parent);
+    my @images = select_images($album);
     my $size = scalar @images;
     if ($size < 3) {
         say "WARNING: Not enough images available in '$album->{name}' to create a preview";
@@ -337,30 +294,29 @@ sub build_preview {
     system($album->{preview_command},
            @images,
            $album->{thumbnail},
-       );
+       ) and die "ERROR: Preview command failed\n";
 }
 
-=item B<select_images>(I<$album>[, I<$parent>])
+=item B<select_images>(I<$album>)
 
 Returns a list of image paths that are eligible for inclusion in an
-album preview. If an optional $parent is supplied, it makes sure that
-the list only contains images whose filename does not appear in the
-parent album. The reason for this is that the author of Photog! likes
-to show the best photographs from an album on the front page, but not
-also have those photographs included in an album preview.
+album preview. It makes sure that the list only contains images whose
+filename does not appear in the parent album. The reason for this is
+that the author of Photog! likes to show the best photographs from an
+album on the front page, but not also have those photographs included
+in an album preview.
 
 =cut
 
 sub select_images {
     my $album  = shift;
-    my $parent = shift; # optional
-    if ($parent) {
+    if ($album->{parent}) {
 
         # Read the following lines from end to beginning
         my %excl = map {$_ => 1}
             map {$_->{href}}
             grep {$_->{type} eq 'image'}
-            @{$parent->{items}};
+            @{$album->{parent}->{items}};
 
         return map {$_->{thumbnail}}
             grep {not $excl{$_->{href}}}
@@ -371,12 +327,6 @@ sub select_images {
         return map {$_->{thumbnail}} @{$album->{items}};
     }
 }
-
-=back
-
-=head2 Helper Functions
-
-=over
 
 =item B<list>(I<$dir>)
 
@@ -389,8 +339,7 @@ sub list {
     my $dir = shift;
     my @files;
     my @dirs;
-    opendir(my $dh, $dir) or die
-        "ERROR: Cannot read contents of directory '$dir'\n";
+    opendir(my $dh, $dir) or return ();
     while (readdir $dh) {
         next if /^\./;
         push @files, "$dir/$_" if -f "$dir/$_";
@@ -400,29 +349,6 @@ sub list {
     @files = sort alphabetical @files;
     @dirs = sort alphabetical @dirs;
     return @dirs, @files;
-}
-
-=item B<is_image>(I<$filename>)
-
-Returns true if the filename ends with C<.jpg>.
-
-=cut
-
-sub is_image {
-    return shift =~ /\.jpg$/;
-}
-
-=item B<strip_suffix>(I<$filename>)
-
-Removes all characters after the last dot of $filename, and the dot
-itself.
-
-=cut
-
-sub strip_suffix {
-    my $file = shift;
-    $file =~ s/\.[^\.]+$//;
-    return $file;
 }
 
 =item B<is_newer>(I<$file1>, I<$file2>)
