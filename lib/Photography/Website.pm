@@ -5,22 +5,19 @@ use feature 'say';
 
 use Photography::Website::Configure;
 use DateTime;
-use File::Copy            qw(copy);
 use File::Path            qw(make_path remove_tree);
 use File::Basename        qw(basename dirname);
 use File::ShareDir        qw(dist_file dist_dir);
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(catfile catdir);
+use File::Copy::Recursive qw(dircopy);
 use Image::Size           qw(imgsize);
 use Image::ExifTool       qw(ImageInfo);
-use Config::General       qw(ParseConfig);
 use String::Random        qw(random_regex);
-use Array::Utils          qw(array_minus);
 use Algorithm::Numerical::Shuffle qw(shuffle);
 use Template; my $tt = Template->new({ABSOLUTE => 1});
 
 our $silent      = 0;
 our $verbose     = 0;
-my  $CONFIG_FILE = "photog.ini";
 
 =head1 NAME
 
@@ -63,13 +60,6 @@ the generate() function.
 
 =head1 FUNCTIONS
 
-The rest of this manpage is a description of the module's functions.
-They are divided into three categories.  First, functions that process
-the source files and directories.  Second, functions that generate the
-website resources. Third, simple helper functions.
-
-=head2 Source Processing Functions
-
 =over
 
 =item B<create_album>(I<$source>[, I<$parent>])
@@ -84,12 +74,12 @@ the source directory tree.
 sub create_album {
     my $source = shift;
     my $parent = shift; # optional
-    my $album = Photography::Website::Configure::configure($source, $parent) || return;
+    my $album  = Photography::Website::Configure::album($source, $parent) || return;
 
     for (list($source)) {
         my $item;
         if (-f) {
-            $item = create_img($_, $album) || next;
+            $item = Photography::Website::Configure::image($_, $album) || next;
         }
         elsif (-d) {
             $item = create_album($_, $album) || next;
@@ -98,43 +88,6 @@ sub create_album {
     }
     return $album;
 }
-
-=item B<create_img>(I<$source>, I<$parent>)
-
-Tries to create an image node of the file referred to by $source. Also
-requires a $parent that references an album node. It returns a false
-value if no image was created, or a reference to an image hash.
-
-=cut
-
-sub create_img {
-    my $source = shift;
-    my $parent = shift;
-    return if not is_image($source);
-    my $img = {};
-    my $filename = basename($source);
-
-    # Populate image hash
-    $img->{type}   = 'image';
-    $img->{name}   = strip_suffix($filename);
-    $img->{url}    = $parent->{url} . $filename;
-    $img->{href}   = $filename;
-    $img->{src}    = "thumbnails/$filename";
-    $img->{source} = $source;
-    $img->{destination} = catfile($parent->{root}, $img->{url});
-    $img->{thumbnail}   = catfile($parent->{destination}, $img->{src});
-    $img->{watermark}   = $parent->{watermark};
-    $img->{scale_command}     = $parent->{scale_command};
-    $img->{watermark_command} = $parent->{watermark_command};
-    $img->{thumbnail_command} = $parent->{thumbnail_command};
-    return $img;
-}
-
-=back
-
-=head2 Site Generation Functions
-
-=over
 
 =item B<generate>(I<$album>[, I<$parent>])
 
@@ -146,47 +99,43 @@ recursively. Returns nothing.
 =cut
 
 sub generate {
-    my $album = shift;
-    my $parent = shift; # optional;
-    my $refresh_index = 0;
+    my $album    = shift;
+    my $parent   = shift; # optional;
+    my $outdated = 0;
 
     # Copy static files to destination root
     if (not $parent) {
         push @{$album->{protected}}, 'static';
-        for (list(catfile(dist_dir('Photog'), 'static'))) {
-            copy($_, $album->{destination}) or die "$_: $!";
-        }
+        my $static_source = catdir(dist_dir('Photog'), 'static');
+        my $static_destination = catdir($album->{destination}, 'static');
+        remove_tree($static_destination) or die $!;
+        dircopy($static_source, $static_destination) or die $!;
     }
 
     # Recursively update image files and album pages
     for my $item (@{$album->{items}}) {
         if ($item->{type} eq 'image') {
-            update_image($item) and $refresh_index = 1;
+            update_image($item) and $outdated = 1;
         }
         elsif ($item->{type} eq 'album') {
-            generate($item, $album) and $refresh_index = 1;
+            generate($item, $album) and $outdated = 1;
         }
     }
 
-    if ($refresh_index) {
-        return build_index($album, $parent);
-    }
-    else {
-        return 0;
-    }
+    return update_album($album, $outdated, $parent);
 }
 
 =item B<update_image>(I<$img>[, I<$force>])
 
 Given an $img node, checks if the image source is newer than the
-destination. If needed, it builds new destination files. Returns
-true if any images have been (re)generated.
+destination. If needed, or if $force is true, it builds new
+destination files. Returns true if any images have been (re)generated.
 
 =cut
 
 sub update_image {
-    my $img = shift;
-    my $update_needed =
+    my $img           = shift;
+    my $update_needed = shift or
         not -f $img->{destination} or
         not -f $img->{thumbnail} or
         is_newer($img->{source}, $img->{destination});
@@ -200,28 +149,33 @@ sub update_image {
     }
 }
 
-=item B<update_album>(I<$album>[, I<$parent>])
+=item B<update_album>(I<$album>[, I<$force>, I<$parent>])
 
 Given an $album node, first deletes any destination files that don't
-have a corresponding source. Then it (re)builds the album's preview and index
-if an update is needed. If a $parent is provided, it will be passed on
-to the build_preview() function. Returns true if any changes have been
-made at the destination directory.
+have a corresponding source. Then it (re)builds the album's preview
+and index if an update is needed or if $force is true. If a $parent is
+provided, it will be passed on to the build_preview()
+function. Returns true if any changes have been made at the
+destination directory.
 
 =cut
 
 sub update_album {
-    my $album = shift;
-    my $parent = shift; # optional
-    my $update_needed =
-        not -f $album->{index} or
+    my $album         = shift;
+    my $update_needed = shift; # optional
+    my $parent        = shift; # optional
+
+    $update_needed ||= not -f $album->{index} or
         (not -f $album->{thumbnail} and not $album->{unlisted}) or
         is_newer($album->{config}, $album->{thumbnail});
 
     # Delete all destinations for which no source exists, unless they are protected
-    for my $dest (list(@{$album->{destination}})) {
-        if (not grep {$_->{destination} eq $dest} @{$album->{items}}) {
-            if (not grep {basename($dest) eq $_} @{$album->{protected}}) {
+    for my $dest (list($album->{destination})) {
+        say "checking $dest...";
+        my $file = basename($dest);
+        if (not grep {basename($_->{destination}) eq $file} @{$album->{items}}) {
+            say "uh-oh, $dest is not in album->items...";
+            if (not grep {$_ eq $file} @{$album->{protected}}) {
                 say ">>>>>>>>remove_tree($dest)";
                 $update_needed = 1;
             }
@@ -316,7 +270,7 @@ below).
 =cut
 
 sub build_preview {
-    my $album = shift;
+    my $album  = shift;
     my $parent = shift; # optional
 
     my @images = select_images($album, $parent);
@@ -355,7 +309,7 @@ also have those photographs included in an album preview.
 =cut
 
 sub select_images {
-    my $album = shift;
+    my $album  = shift;
     my $parent = shift; # optional
     if ($parent) {
 
@@ -381,41 +335,6 @@ sub select_images {
 
 =over
 
-=item B<get_config>(I<$directory>)
-
-Tries to find and parse $directory/photog.ini into a configuration
-hash and returns a reference to it. Returns false if no photog.ini was
-found.
-
-=cut
-
-sub get_config {
-    my $directory = shift;
-    my $file = catfile($directory, $CONFIG_FILE);
-    if (-f $file) {
-        return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1) };
-    }
-    return 0;
-}
-
-=item B<save_config>(I<$config>, I<$directory>)
-
-The other way around, saves the $config hash reference to the file
-photog.ini inside the $directory. Returns nothing.
-
-=cut
-
-sub save_config {
-    my $config = shift;
-    my $directory = shift;
-    my $file = catfile($directory ,$CONFIG_FILE);
-    open(my $fh, '>', $file)
-        or die "ERROR: Can't open '$file' for writing\n";
-    for my $key (keys %{$config}) {
-        say $fh "$key = $config->{$key}";
-    }
-}
-
 =item B<list>(I<$dir>)
 
 Returns a list of absolute pathnames to all the files and directories
@@ -438,29 +357,6 @@ sub list {
     @files = sort alphabetical @files;
     @dirs = sort alphabetical @dirs;
     return @dirs, @files;
-}
-
-=item B<is_image>(I<$filename>)
-
-Returns true if the filename ends with C<.jpg>.
-
-=cut
-
-sub is_image {
-    return shift =~ /\.jpg$/;
-}
-
-=item B<strip_suffix>(I<$filename>)
-
-Removes all characters after the last dot of $filename, and the dot
-itself.
-
-=cut
-
-sub strip_suffix {
-    my $file = shift;
-    $file =~ s/\.[^\.]+$//;
-    return $file;
 }
 
 =item B<is_newer>(I<$file1>, I<$file2>)
@@ -505,14 +401,14 @@ sub exifdate {
 
 =head1 SEE ALSO
 
-photog(3)
+photog(3), Photography::Website::Configuration(1)
 
 =head1 AUTHOR
 
-Photography::Website was written by Jaap Joris Vens <jj@rtts.eu>, and is
-used to create his personal photography website at http://www.superformosa.nl/
+Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used to
+create his personal photography website at http://www.superformosa.nl/
+
 
 =cut
-
 
 1;

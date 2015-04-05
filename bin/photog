@@ -66,128 +66,32 @@ inside the current directory. Subdirectories can contain additional
 configuration files that override certain settings from the root
 configuration file. Config files consist of a number of C<variable =
 value> directives. Lines starting with a C<#> are ignored.
+Photog!'s default settings can be overridden by placing a file named
+C<photog.ini> inside an album's source directory that contains lines
+with C<variable = value> directives. A value set in the
+configuration file will become the new default value for all child
+albums.
 
-=over
+Besides controlling the behavior of Photog!, all configuration options
+are passed along to the template where they can be accessed as the
+attribute of each "item" object. Here is an example (see Template::Manual::Intro(3) for an
+introduction to the template syntax):
 
-=item B<title>
+    [% FOREACH item in items %]
+      [% IF item.type == 'image' %]
+        <img src="[% item.src %]">
+      [% ENDIF %]
+    [% ENDFOR %]
 
-In the default template, the title appears at the top of the page. The
-default value is "My Photography Website". Please set this to
-something more catchy. You can also override it for specific albums to
-show an album name.
+This makes it possible to make up your own configuration variables
+inside a C<photog.ini>, and then use their values when writing a
+custom template. Your own variables will propagate to all child albums
+just like the regular configuration options.
 
-=item B<destination>
-
-The destination directory. This variable has no default. It must be
-specified as a command line argument or in the root configuration
-file. Although possible, overriding this option for subdirectories is
-not recommended. Use the B<url> option instead.
-
-=item B<slug>
-
-A slug is the part of the URL that identifies an album,
-e.g. C<www.example.com/slug/>. The default value is the directory's
-name, so be careful not to use characters in directory names that are
-not allowed in URLs, like spaces. Or, simply override this value to
-choose an appropriate URL for each album.
-
-=item B<url>
-
-This option sets an absolute url for the album rather than a
-slug. This allows the source directories to be differently organized
-than the destination directories.
-
-=item B<copyright>
-
-In the default template, the copyright information appears at the
-bottom of the page. The default value is empty.
-
-=item B<template>
-
-Path to an HTML file containing directives in Template::Toolkit
-syntax. The default is the file C<template.html> that's included with
-Photog!. Use it as a starting point to create your own template!
-
-=item B<preview>
-
-An album preview is a thumbnail image of the album that contains a
-number of smaller images. This option sets the number of preview
-images for an album. Allowed values are 3, 6, and 9. The default is 9.
-
-=item B<watermark>
-
-The path to a transparent PNG file that will be used to watermark all
-full-sized images in an album. The command C<photog-watermark> is
-called to do the actual watermarking, and it currently places the
-watermark in the lower right corner. The default is to not watermark
-website images.
-
-=item B<sort>
-
-Photos are always sorted according to EXIF date. Possible sort orders
-are: C<ascending> and C<descending>. The default value is
-C<descending>.
-
-=item B<fullscreen>
-
-A boolean C<true> or C<false> to determine full-screen
-capability. This prevents access to full-size images by clients who
-haven't paid yet. Defaults to C<true>.
-
-=item B<date>
-
-The ISO 8601 date and optionally time of this album. This is used when
-sorting items chronologically. The default is the directory's
-modification date. The default template never actually shows dates, so
-it can also be used to determine the placement of album previews on a
-page.
-
-=item B<unlisted>
-
-A boolean C<true> or C<false> that determines whether the current
-album will be be unlisted on the parent webpage. The album page
-remains accessible to people who know the URL. Defaults to C<false>.
-
-=item B<private>
-
-When this option is set to C<true>, Photog! will generate a random
-B<slug> and save it in the album's C<photog.ini>. This happens only
-once, because the new C<photog.ini> will have this option unset
-again. Defaults to C<false>.
-
-=item B<oblivious>
-
-A boolean C<true> or C<false> that specifies whether C<photog.ini>
-files are required. If C<true>, Photog! will only consider a
-subdirectory an album when it contains a C<photog.ini> file, even if
-the file is empty. Defaults to C<false>.
-
-=item B<scale_command>
-
-The path to a command to do the image scaling. The command will
-receive 2 arguments: The source image path and the destination image
-path. The default is C<photog-scale>.
-
-=item B<watermark_command>
-
-The command that does the image watermarking. The command will receive
-3 arguments: Paths to the source image, the watermark image, and the
-destination image. Default is C<photog-watermark>.
-
-=item B<thumbnail_command>
-
-The path to a command to generate an image thumbnail. Receives 2
-arguments: The source image path and the thumbnail destination
-path. The default is C<photog-thumbnail>.
-
-=item B<preview_command>
-
-The command that generates album previews. It will receive paths to
-the source images' thumbnails as its arguments, and the path to a
-destination file as its final argument. Currently, Photog! will only
-request previews of 3, 6, or 9 images.
-
-=back
+Images and albums are simply hash references with a number of
+attributes. In code, these attributes can be accessed as follows:
+C<$album->{url}>. In templates you can use the dot-syntax, e.g., C<[%
+if item.type == 'image %]>. 
 
 =head1 ADDITIONAL COMMANDS
 
