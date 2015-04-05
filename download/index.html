@@ -14,12 +14,14 @@ open up a terminal and issue the following commands:
 
     > cpanm https://github.com/rtts/photog/tarball/stable
     > cd Pictures
-    > echo destination = ~/My-Photog-Website > photog.ini
-    > photog
+    > photog ~/My-Photography-Website
 
 Congratulations! Your photography website should now be available at
 the destination you specified. Look for a file named `index.html` in
-that location and open it in your web browser.
+that location and open it in your web browser. The destination has
+been saved by Photog! inside the file `photog.ini`, so the next time
+you run `photog` to update your website you don't have to supply any
+arguments!
 
 Photog! is packaged as a Perl module that is available in the "stable"
 branch of
