@@ -12,6 +12,7 @@ bin/photog-watermark
 dist.ini
 lib/Photography/Website.pm
 lib/Photography/Website/Configure.pm
+photog.ini
 share/static/SourceSansPro-ExtraLight.ttf
 share/static/SourceSansPro-ExtraLight.woff
 share/static/jquery-1.7.2.js
