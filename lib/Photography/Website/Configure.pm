@@ -4,7 +4,7 @@ use strict;
 
 use DateTime;
 use File::Basename        qw(basename dirname);
-use File::ShareDir::PAR   qw(dist_file dist_dir);
+use File::ShareDir        qw(dist_file dist_dir);
 use File::Spec::Functions qw(catfile);
 use Config::General       qw(ParseConfig);
 use String::Random        qw(random_regex);
