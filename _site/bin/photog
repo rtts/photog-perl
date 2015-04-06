@@ -1,0 +1,190 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use feature 'say';
+use Cwd;
+use IPC::Cmd 'can_run';
+use Photography::Website;
+
+die <<EOM
+
+ERROR: ImageMagick is not installed. Please install it in order to use
+Photog!, preferably using your operating system's package manager. Try
+one of the following commands:
+
+    apt-get install imagemagick
+    yum install ImageMagick
+    pacman -S imagemagick
+    brew install imagemagick
+
+EOM
+    unless can_run('convert') and can_run('composite');
+
+=head1 NAME
+
+Photog! - The Photography Website Generator
+
+=head1 SYNOPSIS
+
+B<photog> [I<-q>] [I<-v>] [I<destination>]
+
+B<photog->[B<scale>, B<watermark>, B<thumbnail>, B<preview>]
+
+=head1 DESCRIPTION
+
+Photog! turns a directory tree of source images into a photography
+website with nested albums of chronologically sorted photographs. To
+get started, simply C<cd> to the source directory and call C<photog>
+with the destination directory as its argument. Example:
+
+    $ cd ~/Pictures
+    $ photog ~/public_html
+
+Upon the first run, Photog! writes the website destination to the file
+C<photog.ini> inside the current directory. Subsequent runs of the
+C<photog> command require no arguments, and do nothing unless images
+inside the source directory tree have changed. Photog! only
+regenerates the parts of the website that should be updated.
+
+=head1 OPTIONS
+
+=over
+
+=item B<-q>
+
+Be less verbose
+
+=item B<-v>
+
+Be more verbose
+
+=back
+
+=head1 CONFIGURATION
+
+Photog! reads configuration directives from a file named C<photog.ini>
+inside the source directory. Subdirectories can contain additional
+configuration files that override certain settings from the root
+configuration file. A value set in the configuration file will become
+the new default value for all child albums.
+
+Config files consist of a number of C<variable = value>
+directives. Empty lines and lines starting with a C<#> are
+ignored. All the possible configuration variables are documented in
+the manual page of Photography::Website::Configure(3), the module that
+implements Photog!'s configuration system. Here is an example
+configuration file:
+
+    # This is an example ~/Pictures/photog.ini
+    title = Super Formosa Photography
+    watermark = /home/jj/watermark.png
+    template = /home/jj/frontpage-template.html
+    destination = /var/www/superformosa.nl
+
+This tells Photog! the title, watermark, template, and destination to
+use when generating the album that corresponds to the directory
+C<~/Pictures>. The albums that are created from the subdirectories
+inside C<~/Pictures> will also have the same title, watermark,
+template and destination, because these values are inherited by all
+child albums (unless they are overridden by additional C<photog.ini>
+files). Again, for a complete list of all possible configuration
+variables consult the Photography::Website::Configure(3) manual page.
+
+=head1 TEMPLATING
+
+Photog! comes with a file named C<template.html> that uses
+Template::Toolkit syntax to render each album's C<index.html>. The
+default template uses Javascript to "pack" images into horizontal
+rows. You can supply the path to your own template with the
+B<template> configuration variable.
+
+All the configuration options automatically become template
+variables. An additional template variable, B<items>, contains the
+sorted list of the album's children. Here is an example template (see
+Template::Manual::Intro(3) for an introduction to the template
+syntax):
+
+    <h1>Welcome to [% title %]!</h1>
+    <p>These are my photo albums:</p>
+    [% FOREACH item in items %]
+      [% IF item.type == 'album' %]
+        <img src="[% item.src %]" title="[% item.my_custom_title %]">
+      [% ENDIF %]
+    [% ENDFOR %]
+
+As you can see, this example references the attribute
+C<my_custom_title> of each child album. This is not an "official"
+configuration option, but as long as you set it yourself in the
+album's C<photog.ini> it will be available to all child albums just
+like the regular configuration variables.
+
+=head1 ADDITIONAL COMMANDS
+
+Photog! calls the commands C<photog-scale>, C<photog-watermark>,
+C<photog-thumbnail>, and C<photog-preview> to generate scaled,
+watermarked, thumbnail and preview images. These commands are simple
+shell scripts that have been installed to the same path as the
+C<photog> command. They call ImageMagick to do the actual image
+processing. You can also call these commands directly. Each command
+prints out a simple usage instruction when called with no
+arguments. If you want to change Photog!'s behavior for generating
+images and thumbnails, you can supply your own commands in the
+configuration file (see Photography::Website::Configure(3)).
+
+=head1 SEE ALSO
+
+Photography::Website(3), Photography::Website::Configure(3)
+
+=head1 AUTHOR
+
+Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used to create
+his personal photography website at http://www.superformosa.nl/
+
+=cut
+
+######################################################################
+
+my $source = getcwd();
+my $destination;
+
+# Process arguments
+for (@ARGV) {
+    if ($_ eq '-v') {
+        $Photography::Website::verbose = 1;
+    }
+    elsif ($_ eq '-q') {
+        $Photography::Website::silent = 1;
+    }
+    elsif (not defined $destination) {
+        $destination = $_;
+    }
+    else {
+        die "Too many command-line arguments\n";
+    }
+}
+
+# Create a fresh photog.ini
+if (not -f "$source/photog.ini") {
+    if ($destination) {
+        open(my $fh, '>', "$source/photog.ini");
+        print $fh "destination = $destination\n";
+        close $fh;
+    }
+    else {
+        die <<EOM
+
+ERROR: No destination specified. Please specifiy a destination for
+your photography website. You can do this either as a command-line
+argument or in the configuration file 'photog.ini'. See 'man photog'
+for more information.
+
+EOM
+            ;
+    }
+}
+
+# Process the pictures tree
+my $website = Photography::Website::create_album($source);
+
+# Generate the website
+Photography::Website::generate($website);
