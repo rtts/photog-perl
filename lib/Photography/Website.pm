@@ -7,7 +7,7 @@ use Photography::Website::Configure;
 use DateTime;
 use File::Path            qw(make_path remove_tree);
 use File::Basename        qw(basename dirname);
-use File::ShareDir::PAR   qw(dist_file dist_dir);
+use File::ShareDir        qw(dist_file dist_dir);
 use File::Spec::Functions qw(catfile catdir);
 use File::Copy::Recursive qw(dircopy);
 use Image::Size           qw(imgsize);
