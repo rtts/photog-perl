@@ -1,9 +1,0 @@
-#!/bin/bash -e
-if [[ -z "$2" ]]; then cat <<EOF
-photog-watermark - Watermarks an image and scales it to web size
-
-Usage: photog-watermark original.jpg watermark.png web.jpg
-EOF
-exit; fi
-
-convert "$1" -resize 10000x2160 miff:- | composite "$2" - -gravity southeast miff:- | convert - -quality 88% "$3"
