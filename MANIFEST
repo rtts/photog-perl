@@ -10,6 +10,13 @@ bin/photog-scale
 bin/photog-thumbnail
 bin/photog-watermark
 dist.ini
+inc/Compress/Raw/Zlib.pm
+inc/Compress/Zlib.pm
+inc/IO/Compress/Base/Common.pm
+inc/IO/Compress/Gzip.pm
+inc/IO/Compress/Gzip/Constants.pm
+inc/IO/Uncompress/Gunzip.pm
+inc/Image/Size.pm
 lib/Photography/Website.pm
 lib/Photography/Website/Configure.pm
 photog.ini
