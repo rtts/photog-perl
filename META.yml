@@ -1,5 +1,5 @@
 ---
-abstract: 'Photography::Website (a.k.a. "Photog!") turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs'
+abstract: 'Turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs'
 author:
   - 'Jaap Joris Vens <jj@rtts.eu>'
 build_requires:

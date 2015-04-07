@@ -14,7 +14,7 @@ install_share dist => "share";
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "Photography::Website (a.k.a. \"Photog!\") turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs",
+  "ABSTRACT" => "Turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs",
   "AUTHOR" => "Jaap Joris Vens <jj\@rtts.eu>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0,
