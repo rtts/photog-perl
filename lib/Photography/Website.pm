@@ -1,4 +1,5 @@
 package Photography::Website;
+
 use strict;
 use warnings;
 use feature 'say';

@@ -1,4 +1,5 @@
 package Photography::Website::Configure;
+
 use warnings;
 use strict;
 
