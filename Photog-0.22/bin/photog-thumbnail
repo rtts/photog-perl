@@ -1,0 +1,9 @@
+#!/bin/bash -e
+if [[ -z "$2" ]]; then cat <<EOF
+photog-thumbnail - Creates a thumbnail of an image
+
+Usage: photog-thumbnail original.jpg thumbnail.jpg
+EOF
+exit; fi
+
+convert "$1" -resize 5000x366 -unsharp 1.5x+0.7+0.02 -quality 88% "$2"

@@ -14,13 +14,13 @@ install_share dist => "share";
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "Photography::Website (a.k.a. \"Photog!\") turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs",
+  "ABSTRACT" => "Photog! turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs",
   "AUTHOR" => "Jaap Joris Vens <jj\@rtts.eu>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => 0,
     "File::ShareDir::Install" => "0.06"
   },
-  "DISTNAME" => "Photography-Website",
+  "DISTNAME" => "Photog",
   "EXE_FILES" => [
     "bin/photog-scale",
     "bin/photog",
@@ -29,7 +29,7 @@ my %WriteMakefileArgs = (
     "bin/photog-thumbnail"
   ],
   "LICENSE" => "gpl",
-  "NAME" => "Photography::Website",
+  "NAME" => "Photog",
   "PREREQ_PM" => {
     "Algorithm::Numerical::Shuffle" => 0,
     "Config::General" => 0,
