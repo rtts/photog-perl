@@ -1,4 +1,5 @@
 package Photography::Website::Configure;
+$Photography::Website::Configure::VERSION = '0.22';
 use warnings;
 use strict;
 
