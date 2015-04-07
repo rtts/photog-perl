@@ -1,5 +1,5 @@
 package Photography::Website;
-$Photography::Website::VERSION = '0.22';
+$Photography::Website::VERSION = '0.23';
 use strict;
 use warnings;
 use feature 'say';
