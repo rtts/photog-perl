@@ -18,7 +18,13 @@ $small: 500px;
   font-family: 'TeX Gyre Adventor';
   font-style: normal;
   font-weight: 400;
-  src: local('TeX Gyre Adventor'), url('fonts/TeX-Gyre-Adventor.woff') format('woff');
+  src: local('TeX Gyre Adventor'), url('fonts/TeX-Gyre-Adventor-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'TeX Gyre Adventor';
+  font-style: normal;
+  font-weight: 700;
+  src: local('TeX Gyre Adventor'), url('fonts/TeX-Gyre-Adventor-Bold.woff') format('woff');
 }
 @font-face {
   font-family: 'Raleway';
@@ -52,8 +58,8 @@ h1, h2, h3 {
   font-family: $headings;
   font-weight: normal;
   line-height: 1.25;
-  margin-top: 0.9em;
-  margin-bottom: -0.2em;
+  margin-top: 1.8rem;
+  margin-bottom: -0.4rem;
 }
 
 h1 {
@@ -93,6 +99,21 @@ p code {
   padding-top: 0;
   border-radius: 5px;
   border: 1px solid $lightblue;
+}
+
+a.button {
+  font-family: $headings;
+  font-weight: bold;
+  display: inline-block;
+  background: $darkteal;
+  border: 6px double #f7f7f7;
+  border-radius: 2em;
+  color: white;
+  padding: 0.5em 2em;
+  box-shadow: 0 0 2em rgba(0,0,0,0.15) inset;
+  &:hover {
+    box-shadow: 0 0 2em rgba(255,255,255,0.15) inset;
+  }
 }
 
 pre, .terminal {
@@ -224,23 +245,11 @@ section#tagline {
     }
   }
   a.button {
-    font-family: $headings;
-    font-weight: bold;
-    font-size: 1.25em;
-    display: inline-block;
-    background: $darkteal;
-    border: 6px double #f7f7f7;
-    border-radius: 2em;
-    color: white;
-    margin-top: 1em;
-    padding: 0.5em 2em;
     position: relative;
+    margin-top: 1em;
     top: 1.75em;
     top: calc(1.5em + 6px);
-    box-shadow: 0 0 2em rgba(0,0,0,0.15) inset;
-    &:hover {
-      box-shadow: 0 0 2em rgba(255,255,255,0.15) inset;
-    }
+    font-size: 1.25em;
   }
 }
 
