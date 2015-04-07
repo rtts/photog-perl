@@ -40,10 +40,10 @@ Photography::Website
 =head1 DESCRIPTION
 
 The Photography::Website module contains the core of the Photog!
-photography website generator. Please refer to photog(3) for a more
+photography website generator. Please refer to L<photog> for a more
 general introduction on how to run Photog! and how to configure
 it. All of the configuration options are documented in
-Photography::Website::Configure(1). If you want to learn about the
+L<Photography::Website::Configure>. If you want to learn about the
 internals of Photog!, read on.
 
 A photography website is generated in two stages. The first stage
@@ -394,13 +394,12 @@ sub exifdate {
 
 =head1 SEE ALSO
 
-photog(3), Photography::Website::Configuration(1)
+L<photog>, L<Photography::Website::Configure>
 
 =head1 AUTHOR
 
 Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used to
-create his personal photography website at http://www.superformosa.nl/
-
+create his personal photography website at L<http://www.superformosa.nl/>
 
 =cut
 

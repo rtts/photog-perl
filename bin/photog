@@ -101,7 +101,7 @@ B<template> configuration variable.
 All the configuration options automatically become template
 variables. An additional template variable, B<items>, contains the
 sorted list of the album's children. Here is an example template (see
-Template::Manual::Intro(3) for an introduction to the template
+L<Template::Manual::Intro> for an introduction to the template
 syntax):
 
     <h1>Welcome to [% title %]!</h1>
@@ -133,12 +133,12 @@ configuration file (see Photography::Website::Configure(3)).
 
 =head1 SEE ALSO
 
-Photography::Website(3), Photography::Website::Configure(3)
+L<Photography::Website>, L<Photography::Website::Configure>
 
 =head1 AUTHOR
 
 Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used to create
-his personal photography website at http://www.superformosa.nl/
+his personal photography website at L<http://www.superformosa.nl/>
 
 =cut
 

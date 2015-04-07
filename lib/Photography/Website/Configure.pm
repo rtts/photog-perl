@@ -19,8 +19,8 @@ Photography::Website::Configure
 =head1 DESCRIPTION
 
 This module contains the configuration logic of Photog! the
-photography website generator. See photog(3) for the documentation
-about the command-line interface and see Photography::Website(1) for
+photography website generator. See L<photog> for the documentation
+about the command-line interface and see L<Photography::Website> for
 documentation about the Perl interface.
 
 What follows is a comprehensive list of all configuration options
@@ -350,7 +350,7 @@ bottom of the page. The default value is empty.
 
 =item B<template>
 
-Path to an HTML file containing directives in Template::Toolkit
+Path to an HTML file containing directives in L<Template::Toolkit>
 syntax. The current album will be made available as the variable
 "album", from where all additional configuration variables can be
 accessed using dot syntax, i.e., album.title, album.copyright etc. You
@@ -526,12 +526,12 @@ sub strip_suffix {
 
 =head1 SEE ALSO
 
-photog(3), Photography::Website(1)
+L<photog>, L<Photography::Website>
 
 =head1 AUTHOR
 
 Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used to
-create his personal photography website at http://www.superformosa.nl/
+create his personal photography website at L<http://www.superformosa.nl/>
 
 =cut
 
