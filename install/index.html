@@ -1,0 +1,88 @@
+---
+title: Photog! - Download, install and get started
+layout: page
+---
+
+Installation Guide
+==================
+
+Photog! is written in the
+[Perl programming language](https://en.wikipedia.org/wiki/Perl) and
+uses the image-processing software
+[ImageMagick](http://www.imagemagick.org/). Both of these tools are
+operating system independent, which means you can install Photog! on
+Linux, Mac OS, and Windows. Here is a step-by-step guide to getting
+Photog! up and running:
+
+Step 1 -- Get Perl
+------------------
+
+> "If you put a million monkeys at a million keyboards, one of them
+> will eventually write a Java program.  The rest of them will write
+> Perl programs."
+>
+> <cite>Brian Kelly ([source](http://stackoverflow.com/a/273868/1324356))</cite>
+
+The first step is to make sure that Perl is installed on your
+system. You can check if Perl is installed by running the following
+command in a terminal:
+
+    perl -v
+
+If Perl is installed, this will output a short notice about the
+version and license information. If you get the error message "command
+not found" then you'll have to download and install Perl from
+[the website](http://www.perl.org/get.html).
+
+Step 2 -- Get ImageMagick
+-------------------------
+
+[ImageMagick](http://imagemagick.org/) is collection of command-line
+utilities to manipulate images. Photog! uses it to generate thumbnails
+and watermarks. It's easiest to install ImageMagick using your
+operating system's package manager. On Debian-based operating systems,
+open a shell prompt and execute the following command:
+
+    sudo apt-get install imagemagick
+
+On Mac OS using [Homebrew](http://brew.sh/), open a terminal window
+and type the following command:
+
+    brew install imagemagick
+
+Step 3 -- Install Photog!
+-------------------------
+
+You are now ready for the final installation step: installing Photog!
+Open up a terminal window and type:
+
+    sudo cpan Photography::Website
+
+The CPAN utility will automatically download, test, and install
+`Photography::Website`, the Perl module that contains the Photog!
+website generator. Sit back, relax, and watch some interesting output
+scroll by on your terminal. When you get your prompt back, Photog! is
+successfully installed on your system.
+
+Creating your first website
+===========================
+
+To generate a photography website using the default settings, simply
+`cd` to your Pictures directory and execute `photog` with the
+destination directory as its argument:
+
+    > cd ~/Pictures
+    > photog ~/My-Photog-Website
+
+Your photography website should now be available in the destination
+directory. Go have a look!
+
+Great! What Now?
+----------------
+
+The next step is to learn how you can configure Photog! to do exactly
+what you want. There are many configuration variables available. You
+can also customize the templates and the commands used to generate the
+images. You can even specify a seperate configuration for each
+subdirectory of your pictures folder. To learn how, head on over to
+the [Documentation](/doc/).
