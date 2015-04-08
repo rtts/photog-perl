@@ -11,8 +11,8 @@ Photog! is written in the
 uses the image-processing software
 [ImageMagick](http://www.imagemagick.org/). Both of these tools are
 operating system independent, which means you can install Photog! on
-Linux, Mac OS, and Windows. Here is a step-by-step guide to getting
-Photog! up and running:
+either Linux, Mac OS, or Windows. Here is a step-by-step guide to
+getting Photog! up and running:
 
 Step 1 -- Get Perl
 ------------------
@@ -23,9 +23,9 @@ Step 1 -- Get Perl
 >
 > <cite>Brian Kelly ([source](http://stackoverflow.com/a/273868/1324356))</cite>
 
-The first step is to make sure that Perl is installed on your
-system. You can check if Perl is installed by running the following
-command in a terminal:
+Perl is installed by default on Mac OS and almost all Linux
+distributions. You can check if Perl is installed on your system by
+running the following command in a terminal:
 
     perl -v
 
@@ -49,6 +49,9 @@ On Mac OS using [Homebrew](http://brew.sh/), open a terminal window
 and type the following command:
 
     brew install imagemagick
+
+Windows users should use the
+[ImageMagick installer](http://imagemagick.org/script/binary-releases.php#windows).
 
 Step 3 -- Install Photog!
 -------------------------
@@ -75,7 +78,8 @@ destination directory as its argument:
     > photog ~/My-Photog-Website
 
 Your photography website should now be available in the destination
-directory. Go have a look!
+directory. Look for a file named `index.html` in that location and
+open it in your web browser. Enjoy!
 
 Great! What Now?
 ----------------
