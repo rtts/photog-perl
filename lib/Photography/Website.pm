@@ -169,7 +169,7 @@ sub update_album {
     my $update_needed = shift || ( # optional
         not -f $album->{index} or
         (not -f $album->{thumbnail} and not $album->{unlisted}) or
-        is_newer($album->{config}, $album->{thumbnail})
+        is_newer($album->{config}, $album->{index})
     );
 
     if (not -d $album->{destination}) {
@@ -258,6 +258,10 @@ sub build_index {
         return $a->{date} cmp $b->{date} if $album->{sort} eq 'ascending';
         return $b->{date} cmp $a->{date} if $album->{sort} eq 'descending';
     } @{$album->{items}};
+
+    if (not -f $album->{thumbnail}) {
+        $album->{unlisted} = 1;
+    }
 
     say $album->{url} . "index.html";
     $tt->process($album->{template}, $album, $album->{index})
