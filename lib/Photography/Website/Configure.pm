@@ -1,3 +1,4 @@
+my $DIST = 'Photography-Website';
 package Photography::Website::Configure;
 
 use warnings;
@@ -5,7 +6,7 @@ use strict;
 
 use DateTime;
 use File::Basename        qw(basename dirname);
-use File::ShareDir        qw(dist_file dist_dir);
+use File::ShareDir        qw(dist_file);
 use File::Spec::Functions qw(catfile);
 use Config::General       qw(ParseConfig);
 use String::Random        qw(random_regex);
@@ -362,7 +363,7 @@ point to create your own template!
 =cut
 
     $album->{template} ||= $parent->{template}
-                       || dist_file('Photog', 'template.html');
+                       || dist_file($DIST, 'template.html');
 
 =item B<preview>
 

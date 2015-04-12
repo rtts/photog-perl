@@ -1,3 +1,4 @@
+my $DIST = 'Photography-Website';
 package Photography::Website;
 
 use strict;
@@ -8,7 +9,7 @@ use Photography::Website::Configure;
 use DateTime;
 use File::Path            qw(make_path remove_tree);
 use File::Basename        qw(basename dirname);
-use File::ShareDir        qw(dist_file dist_dir);
+use File::ShareDir        qw(dist_dir);
 use File::Spec::Functions qw(catfile catdir);
 use File::Copy::Recursive qw(dircopy);
 use Image::Size           qw(imgsize);
@@ -108,7 +109,7 @@ sub generate {
     # Copy static files to destination root
     if (not $album->{parent}) {
         push @{$album->{protected}}, 'static';
-        my $static_source = catdir(dist_dir('Photog'), 'static');
+        my $static_source = catdir(dist_dir($DIST), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
         dircopy($static_source, $static_destination) and say "/static/";
     }
