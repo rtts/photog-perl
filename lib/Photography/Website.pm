@@ -1,5 +1,6 @@
+my $DIST = 'Photography-Website';
 package Photography::Website;
-$Photography::Website::VERSION = '0.23';
+$Photography::Website::VERSION = '0.24';
 use strict;
 use warnings;
 use feature 'say';
@@ -8,7 +9,7 @@ use Photography::Website::Configure;
 use DateTime;
 use File::Path            qw(make_path remove_tree);
 use File::Basename        qw(basename dirname);
-use File::ShareDir        qw(dist_file dist_dir);
+use File::ShareDir        qw(dist_dir);
 use File::Spec::Functions qw(catfile catdir);
 use File::Copy::Recursive qw(dircopy);
 use Image::Size           qw(imgsize);
@@ -40,10 +41,10 @@ Photography::Website
 =head1 DESCRIPTION
 
 The Photography::Website module contains the core of the Photog!
-photography website generator. Please refer to photog(3) for a more
+photography website generator. Please refer to L<photog> for a more
 general introduction on how to run Photog! and how to configure
 it. All of the configuration options are documented in
-Photography::Website::Configure(1). If you want to learn about the
+L<Photography::Website::Configure>. If you want to learn about the
 internals of Photog!, read on.
 
 A photography website is generated in two stages. The first stage
@@ -108,7 +109,7 @@ sub generate {
     # Copy static files to destination root
     if (not $album->{parent}) {
         push @{$album->{protected}}, 'static';
-        my $static_source = catdir(dist_dir('Photog'), 'static');
+        my $static_source = catdir(dist_dir($DIST), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
         dircopy($static_source, $static_destination) and say "/static/";
     }
@@ -169,7 +170,7 @@ sub update_album {
     my $update_needed = shift || ( # optional
         not -f $album->{index} or
         (not -f $album->{thumbnail} and not $album->{unlisted}) or
-        is_newer($album->{config}, $album->{thumbnail})
+        is_newer($album->{config}, $album->{index})
     );
 
     if (not -d $album->{destination}) {
@@ -258,6 +259,10 @@ sub build_index {
         return $a->{date} cmp $b->{date} if $album->{sort} eq 'ascending';
         return $b->{date} cmp $a->{date} if $album->{sort} eq 'descending';
     } @{$album->{items}};
+
+    if (not -f $album->{thumbnail}) {
+        $album->{unlisted} = 1;
+    }
 
     say $album->{url} . "index.html";
     $tt->process($album->{template}, $album, $album->{index})
@@ -394,13 +399,12 @@ sub exifdate {
 
 =head1 SEE ALSO
 
-photog(3), Photography::Website::Configuration(1)
+L<photog>, L<Photography::Website::Configure>
 
 =head1 AUTHOR
 
 Photog! was written by Jaap Joris Vens <jj@rtts.eu>, and is used to
-create his personal photography website at http://www.superformosa.nl/
-
+create his personal photography website at L<http://www.superformosa.nl/>
 
 =cut
 
