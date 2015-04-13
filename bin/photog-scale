@@ -1,9 +1,13 @@
-#!/bin/bash -e
-if [[ -z "$2" ]]; then cat <<EOF
+#!/usr/bin/env perl
+use warnings;
+use strict;
+print <<EOF
 photog-scale - Scales an image to web size
 
 Usage: photog-scale original.jpg web.jpg
 EOF
-exit; fi
+and exit if @ARGV != 2;
 
-convert "$1" -resize 10000x2160 -quality 88% "$2"
+my $command = "convert '$ARGV[0]' -resize 10000x2160 -quality 88% '$ARGV[1]'";
+
+exit !!system($command);

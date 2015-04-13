@@ -15,7 +15,7 @@ my $CONFIG_FILE = "photog.ini";
 
 =head1 NAME
 
-Photography::Website::Configure
+Photography::Website::Configure - List of Configuration Options
 
 =head1 DESCRIPTION
 

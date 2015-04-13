@@ -23,7 +23,7 @@ our $verbose = 0;
 
 =head1 NAME
 
-Photography::Website
+Photography::Website - Photography Website Generator
 
 =head1 SYNOPSIS
 

@@ -1,9 +1,13 @@
-#!/bin/bash -e
-if [[ -z "$2" ]]; then cat <<EOF
+#!/usr/bin/env perl
+use warnings;
+use strict;
+print <<EOF
 photog-thumbnail - Creates a thumbnail of an image
 
 Usage: photog-thumbnail original.jpg thumbnail.jpg
 EOF
-exit; fi
+and exit if @ARGV != 2;
 
-convert "$1" -resize 5000x366 -unsharp 1.5x+0.7+0.02 -quality 88% "$2"
+my $command = "convert '$ARGV[0]' -resize 5000x366 -unsharp 1.5x+0.7+0.02 -quality 88% '$ARGV[1]'";
+
+exit !!system($command);
