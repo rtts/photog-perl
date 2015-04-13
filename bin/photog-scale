@@ -8,6 +8,6 @@ Usage: photog-scale original.jpg web.jpg
 EOF
 and exit if @ARGV != 2;
 
-my $command = "convert '$ARGV[0]' -resize 10000x2160 -quality 88% '$ARGV[1]'";
+my $command = qq[convert "$ARGV[0]" -resize 10000x2160 -quality 88% "$ARGV[1]"];
 
 exit !!system($command);

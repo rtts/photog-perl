@@ -348,8 +348,8 @@ sub list {
     opendir(my $dh, $dir) or return ();
     while (readdir $dh) {
         next if /^\./;
-        push @files, "$dir/$_" if -f "$dir/$_";
-        push @dirs, "$dir/$_" if -d "$dir/$_";
+        push @files, catfile($dir, $_) if -f catfile($dir,$_);
+        push @dirs, catdir($dir, $_) if -d catdir($dir, $_);
     }
     sub alphabetical { lc($a) cmp lc($b) }
     @files = sort alphabetical @files;

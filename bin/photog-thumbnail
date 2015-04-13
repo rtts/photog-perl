@@ -8,6 +8,6 @@ Usage: photog-thumbnail original.jpg thumbnail.jpg
 EOF
 and exit if @ARGV != 2;
 
-my $command = "convert '$ARGV[0]' -resize 5000x366 -unsharp 1.5x+0.7+0.02 -quality 88% '$ARGV[1]'";
+my $command = qq[convert "$ARGV[0]" -resize 5000x366 -unsharp 1.5x+0.7+0.02 -quality 88% "$ARGV[1]"];
 
 exit !!system($command);
