@@ -1,6 +1,6 @@
 my $DIST = 'Photography-Website';
 package Photography::Website;
-$Photography::Website::VERSION = '0.24';
+$Photography::Website::VERSION = '0.25';
 use strict;
 use warnings;
 use feature 'say';
@@ -23,7 +23,7 @@ our $verbose = 0;
 
 =head1 NAME
 
-Photography::Website
+Photography::Website - Photography Website Generator
 
 =head1 SYNOPSIS
 
@@ -348,8 +348,8 @@ sub list {
     opendir(my $dh, $dir) or return ();
     while (readdir $dh) {
         next if /^\./;
-        push @files, "$dir/$_" if -f "$dir/$_";
-        push @dirs, "$dir/$_" if -d "$dir/$_";
+        push @files, catfile($dir, $_) if -f catfile($dir,$_);
+        push @dirs, catdir($dir, $_) if -d catdir($dir, $_);
     }
     sub alphabetical { lc($a) cmp lc($b) }
     @files = sort alphabetical @files;

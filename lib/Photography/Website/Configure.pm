@@ -1,6 +1,6 @@
 my $DIST = 'Photography-Website';
 package Photography::Website::Configure;
-$Photography::Website::Configure::VERSION = '0.24';
+$Photography::Website::Configure::VERSION = '0.25';
 use warnings;
 use strict;
 
@@ -15,7 +15,7 @@ my $CONFIG_FILE = "photog.ini";
 
 =head1 NAME
 
-Photography::Website::Configure
+Photography::Website::Configure - List of Configuration Options
 
 =head1 DESCRIPTION
 

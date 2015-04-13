@@ -1,60 +1,55 @@
-#!/bin/bash -e
-if [[ -z "$4" ]]; then cat <<EOF
+#!/usr/bin/env perl
+use warnings;
+use strict;
+print <<EOF
 photog-preview: Composes images to together to create an album preview
 
 Usage: photog-preview img1.jpg img2.jpg img3.jpg [...] preview.jpg
 
 Note: Album previews MUST consist of 3, 6 or 9 images
 EOF
-exit; fi
+and exit if @ARGV < 4;
 
-# The "xc:red" is a workaround for the following ImageMagick bug:
-# http://www.imagemagick.org/discourse-server/viewtopic.php?t=26796
+# The following code builds an array of command arguments to be used
+# in a system() call to ImageMagick's `convert`. It would probably
+# make more sense to use Image::Magick instead, but I have no idea how.
 
-b=8
-if (($# == 4))
-then
-    convert -bordercolor black xc:red \
-            \( "$1" -border $b -resize 200x1000 \) \
-            \( "$2" -border $b -resize 200x1000 \) \
-            \( "$3" -border $b -resize 200x1000 \) \
-            -append -crop +0+1 -shave 2 +repage "$4"
-elif (($# == 7))
-then
-    convert -bordercolor black \
-            \( \( xc:red \) \
-               \( "$1" -border $b \) \
-               \( "$2" -border $b \) \
-               +append -crop +1+0 +repage -resize 400x1000 \) \
-            \( \( xc:red \) \
-               \( "$3" -border $b \) \
-               \( "$4" -border $b \) \
-               +append -crop +1+0 +repage -resize 400x1000 \) \
-            \( \( xc:red \) \
-               \( "$5" -border $b \) \
-               \( "$6" -border $b \) \
-               +append -crop +1+0 +repage -resize 400x1000 \) \
-            -append -shave 2 "$7"
-elif (($# == 10))
-then
-    convert -bordercolor black \
-            \( \( xc:red \) \
-               \( "$1" -border $b \) \
-               \( "$2" -border $b \) \
-               \( "$3" -border $b \) \
-               +append -crop +1+0 +repage -resize 600x1000 \) \
-            \( \( xc:red \) \
-               \( "$4" -border $b \) \
-               \( "$5" -border $b \) \
-               \( "$6" -border $b \) \
-               +append -crop +1+0 +repage -resize 600x1000 \) \
-            \( \( xc:red \) \
-               \( "$7" -border $b \) \
-               \( "$8" -border $b \) \
-               \( "$9" -border $b \) \
-               +append -crop +1+0 +repage -resize 600x1000 \) \
-            -append -shave 2 "${10}"
-else
-    echo "Incorrect number of arguments" >&2
-    exit 1
-fi
+my @command;
+my @images = @ARGV[0 .. @ARGV-2];
+my $destination = $ARGV[-1];
+
+if (@images == 3) {
+
+    # The "xc:red" is a workaround for the following ImageMagick bug:
+    # http://www.imagemagick.org/discourse-server/viewtopic.php?t=26796
+    @command = qw[convert -bordercolor black xc:red];
+
+    for (@images) {
+        push @command, ('(', $_, qw[-border 8 -resize 200x1000 )]);
+    }
+    push @command, qw[-append -crop +0+1 -shave 2 +repage];
+    push @command, $destination;
+}
+
+elsif (@images == 6 or @images == 9) {
+    my $rows = 3;
+    my $cols = @images / 3;
+    my $width = $cols * 200;
+    push @command, qw[convert -bordercolor black];
+    for (1..$rows) {
+        push @command, qw[( ( xc:red )];
+        for (1..$cols) {
+            push @command, ('(', shift @images, qw[-border 8 )]);
+        }
+        push @command, qw[+append -crop +1+0 +repage -resize];
+        push @command, ($width.'x1000', ')');
+    }
+    push @command, qw[-append -shave 2];
+    push @command, $destination;
+}
+
+else {
+    die "Incorrect number of arguments\n";
+}
+
+exit !!system(@command);

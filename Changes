@@ -1,0 +1,20 @@
+0.25      2015-04-13 14:36:04+02:00 Europe/Amsterdam
+        - Rewrote the photog-xxx commands from bash to Perl so they work in Windows
+        - This fixes bug #103486 "No Perl script found in input"
+        - Photog! now works on Windows, confirmed on Windows XP
+
+0.24
+        - Fixed bug #103476 "Failed to find shared file 'template.html'"
+        - Photog! should work on Macs, but this has not been confirmed
+
+0.22
+        - The first release of Photog! on CPAN and Github
+
+0.2
+        - A total rewrite with a separate module for configuration
+
+0.1
+        - The first version of Photog! written in Perl
+
+0.01
+        - The first version of Photog!, implemented as a bash script
