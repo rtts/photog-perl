@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.26      2015-04-14 18:07:52+02:00 Europe/Amsterdam
         - The destination argument of the photog command is now optional
         - More useful output when verbose
         - More silent output when silent
