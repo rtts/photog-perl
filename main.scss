@@ -2,9 +2,10 @@
 ---
 
 $darkteal: #52a5ad;
-$lightteal: #cbebef;
+$lightteal: #e7f7f7;
 $darkblue: #3f4c61;
 $lightblue: #a9b1bf;
+$shadow: rgba(169, 177, 191, 0.5);
 
 $small: 500px;
 
@@ -40,8 +41,8 @@ $monospace: Inconsolata;
 
 body, html {
   font-family: $body;
-  background: #eee;
   color: $darkblue;
+  background: white;
   margin: 0;
   padding: 0;
   line-height: 1.5;
@@ -58,6 +59,24 @@ h1, h2, h3 {
 
 h1 {
   font-size: 1.9em;
+  &.tagline {
+    text-align: center;
+    font-family: $tagline;
+    font-weight: 300;
+    letter-spacing: -0.09em;
+    font-size: 3em;
+    max-width: 15em;
+    margin: 2em auto;
+    margin: calc(4vw + 1em) auto;
+    u {
+      text-decoration: none;
+      box-shadow: inset 0 -5px 0 white, inset 0 -6.25px 0 $darkblue;
+    }
+    @media (max-width: $small) {
+      font-size: 2.5em;
+      line-height: 1;
+    }
+  }
 }
 
 h2 {
@@ -73,13 +92,18 @@ blockquote {
   margin: 0;
   padding: 0;
   padding-left: 1em;
-  border-left: 0.5em solid $lightteal;
+  border-left: 0.5em solid $darkteal;
 }
 
 small {
   display: block;
   line-height: 1.1;
   font-size: 0.65em;
+}
+
+hr {
+  border: none;
+  margin: 2em;
 }
 
 code {
@@ -111,13 +135,15 @@ a.button {
 }
 
 pre, .terminal {
-  margin: 1.25em 0;
+  font-family: $monospace;
+  margin: 1.25em auto;
   padding: 0.5em;
   padding-top: 1.5em;
   position: relative;
   border-top-left-radius: 0.3em;
   border-top-right-radius: 0.3em;
-  box-shadow: 0 0 3px rgba(0,0,0,0.3);
+  border: 1px solid $lightblue;
+  box-shadow: 0.25em 0.25em 1em $shadow;
   overflow: auto;
   &:before {
     position: absolute;
@@ -127,12 +153,13 @@ pre, .terminal {
     top: 0;
     left: 0;
     content: "Terminal Window";
-    color: #666;
+    opacity: 0.95;
     text-align: center;
     display: block;
     height: 1.5em;
     width: 100%;
     background: linear-gradient(to bottom, #f7f7f7, #eee);
+    background: linear-gradient(to bottom, white, $lightteal);
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
     border-bottom: 1px solid #ddd;
@@ -145,7 +172,20 @@ pre, .terminal {
 div.terminal {
   padding: 0;
   padding-top: 1.2em;
+
+  &.large {
+    max-width: 15em;
+    padding: 0.5em;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    font-size: 1.75em;
+
+    &:before {
+      font-size: 1rem;
+    }
+  }
 }
+
 
 iframe {
   display: block;
@@ -155,9 +195,10 @@ iframe {
 }
 
 header {
-  margin-top: 0.5em;
+  padding-top: 1em;
   text-align: center;
   border-bottom: 6px double $lightblue;
+  background: $lightteal;
   img {
     position: relative;
     width: 17em;
@@ -192,7 +233,6 @@ header {
 }
 
 section {
-  background: white;
   border-top: 6px double $lightblue;
   border-bottom: 6px double $lightblue;
   padding: 0.5em;
@@ -206,22 +246,10 @@ section {
 
 section#tagline {
   padding: 0 5%;
+  padding-bottom: 3em;
   text-align: center;
   background: white;
 
-  h1 {
-    font-family: $tagline;
-    font-weight: 300;
-    letter-spacing: -0.09em;
-    font-size: 3em;
-    max-width: 15em;
-    margin: 2em auto;
-    margin: 7vw auto;
-    @media (max-width: $small) {
-      font-size: 2.5em;
-      line-height: 1;
-    }
-  }
   table {
     td {
       vertical-align: top;
@@ -248,9 +276,8 @@ section#tagline {
 }
 
 section#features {
-  padding: 2em 0.5em;
-  padding-top: 6em;
-  background: #eee;
+  background: $lightteal;
+  padding: 3.75em 0.5em;
 
   ul {
     display: flex;
@@ -271,6 +298,7 @@ section#features {
       padding: 1.5em;
       background: white;
       border: 6px double $lightblue;
+      border-radius: 3em;
 
       @media (max-width: $small) {
         width: auto;
@@ -294,9 +322,17 @@ section#features {
   }
 }
 
+section#installation {
+  font-size: 1.1em;
+  padding-top: 2em;
+}
+
 footer {
   border-top: 6px double $lightblue;
-  min-height: 5em;
+  padding-top:2em;
+  min-height: 6em;
+  background: $lightteal;
+  text-align: center;
 }
 
 #github {

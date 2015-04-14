@@ -5,7 +5,7 @@
     {% include header.html %}
 
     <section id="tagline">
-      <h1>
+      <h1 class="tagline">
         {{page.tagline}}
       </h1>
       <table width="100%">
@@ -22,7 +22,6 @@
           </td>
         </tr>
       </table>
-      <a class="button" href="/install/">Install Photog!</a>
     </section>
 
     <section id="features">
@@ -37,8 +36,10 @@
       </ul>
     </section>
 
-    <section>
-      {{content || markdownify}}
+    <section id="installation">
+      <div>
+        {{content || markdownify}}
+      </div>
     </section>
 
     {% include footer.html %}
