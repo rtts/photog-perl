@@ -246,7 +246,6 @@ section {
 
 section#tagline {
   padding: 0 5%;
-  padding-bottom: 3em;
   text-align: center;
   background: white;
 
@@ -277,7 +276,7 @@ section#tagline {
 
 section#features {
   background: $lightteal;
-  padding: 3.75em 0.5em;
+  padding: 5em 0.5em;
 
   ul {
     display: flex;
