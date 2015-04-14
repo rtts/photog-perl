@@ -4,21 +4,8 @@ use strict;
 use feature 'say';
 use Cwd;
 use IPC::Cmd 'can_run';
+use File::Spec::Functions qw(catfile catdir);
 use Photography::Website;
-
-die <<EOM
-
-ERROR: ImageMagick is not installed. Please install it in order to use
-Photog!, preferably using your operating system's package manager. Try
-one of the following commands:
-
-    apt-get install imagemagick
-    yum install ImageMagick
-    pacman -S imagemagick
-    brew install imagemagick
-
-EOM
-    unless can_run('convert') and can_run('composite');
 
 =head1 NAME
 
@@ -34,16 +21,17 @@ B<photog->[B<scale>, B<watermark>, B<thumbnail>, B<preview>]
 
 Photog! turns a directory tree of source images into a photography
 website with nested albums of chronologically sorted photographs. To
-get started, simply C<cd> to the source directory and call C<photog>
-with the destination directory as its argument. Example:
+get started, simply C<cd> to the source directory and call C<photog>:
 
-    $ cd ~/Pictures
-    $ photog ~/public_html
+    $ cd Pictures
+    $ photog
 
-Upon the first run, Photog! writes the website destination to the file
-C<photog.ini> inside the current directory. Subsequent runs of the
-C<photog> command require no arguments, and do nothing unless images
-inside the source directory tree have changed. Photog! only
+Upon the first run, Photog! asks the user for a destination directory,
+which it writes to the file C<photog.ini> inside the source
+directory. The destination can also be specified on the command line
+as the final argument, or inside a pre-existing C<photog.ini>
+file. Subsequent runs of the C<photog> command do nothing unless the
+contents of the source directory have changed. Photog! only
 regenerates the parts of the website that should be updated.
 
 =head1 OPTIONS
@@ -71,7 +59,7 @@ the new default value for all child albums.
 Config files consist of a number of C<variable = value>
 directives. Empty lines and lines starting with a C<#> are
 ignored. All the possible configuration variables are documented in
-the manual page of Photography::Website::Configure(3), the module that
+the manual page of L<Photography::Website::Configure>, the module that
 implements Photog!'s configuration system. Here is an example
 configuration file:
 
@@ -97,6 +85,14 @@ Template::Toolkit syntax to render each album's C<index.html>. The
 default template uses Javascript to "pack" images into horizontal
 rows. You can supply the path to your own template with the
 B<template> configuration variable.
+
+The easiest way to create your own template is to start with a copy of
+the default template. The location of the default template varies by
+platform, but it can always be found with the following Perl
+oneliner:
+
+    perl -MFile::ShareDir=dist_file -E \
+    'say dist_file("Photography-Website", "template.html")'
 
 All the configuration options automatically become template
 variables. An additional template variable, B<items>, contains the
@@ -125,11 +121,10 @@ C<photog-thumbnail>, and C<photog-preview> to generate scaled,
 watermarked, thumbnail and preview images. These commands are simple
 shell scripts that have been installed to the same path as the
 C<photog> command. They call ImageMagick to do the actual image
-processing. You can also call these commands directly. Each command
-prints out a simple usage instruction when called with no
-arguments. If you want to change Photog!'s behavior for generating
-images and thumbnails, you can supply your own commands in the
-configuration file (see Photography::Website::Configure(3)).
+processing. Each command prints out a simple usage instruction when
+called with no arguments. If you want to change Photog!'s behavior for
+generating images and thumbnails, you can supply your own commands in
+the configuration file (see L<Photography::Website::Configure>).
 
 =head1 SEE ALSO
 
@@ -146,45 +141,93 @@ his personal photography website at L<http://www.superformosa.nl/>
 
 my $source = getcwd();
 my $destination;
+my $silent = 0;
+my $verbose = 0;
 
 # Process arguments
 for (@ARGV) {
     if ($_ eq '-v') {
+        $verbose = 1;
         $Photography::Website::verbose = 1;
     }
     elsif ($_ eq '-q') {
+        $silent = 1;
         $Photography::Website::silent = 1;
     }
     elsif (not defined $destination) {
         $destination = $_;
     }
     else {
-        die "Too many command-line arguments\n";
+        die "ERROR: Too many command-line arguments\n";
     }
 }
 
-# Create a fresh photog.ini
-if (not -f "$source/photog.ini") {
-    if ($destination) {
-        open(my $fh, '>', "$source/photog.ini");
-        print $fh "destination = $destination\n";
-        close $fh;
-    }
-    else {
-        die <<EOM
+say "Welcome to Photog!" unless $silent;
 
-ERROR: No destination specified. Please specifiy a destination for
-your photography website. You can do this either as a command-line
-argument or in the configuration file 'photog.ini'. See 'man photog'
-for more information.
+die <<EOM
+
+Please install ImageMagick in order to use Photog!, preferably using
+your operating system's package manager, or otherwise by downloading
+and running the appropriate installer from http://imagemagick.org/
+
+This error message will go away when the ImageMagick commands
+`convert` and `composite` can be executed. If you have installed
+ImageMagick but are still seeing this error message, you should make
+sure that the directory that contains these commands is included in
+your \$PATH
+
+If you need help, please read the Installation Guide located at
+http://photog.created.today/install/ or drop me a line at jj\@rtts.eu
 
 EOM
-            ;
+unless can_run('convert') and can_run('composite');
+
+my $ini = catfile($source, 'photog.ini');
+if (not -f $ini) {
+    until (defined $destination and -d $destination) {
+        if (defined $destination) {
+            say "Creating destination directory $destination";
+            mkdir $destination or die "ERROR: Couldn't create destination directory ($!)\n";
+        }
+        else {
+            my $default = catdir('..', 'My-Photography-Website');
+            print "Please specify a destination directory, or press Enter for the default [$default]: ";
+            $destination = <STDIN>;
+            chomp $destination;
+            $destination ||= $default;
+            if (-d $destination) {
+                print "This directory already exists. All of its contents will be deleted. Are you sure you want to continue? [y/N] ";
+                my $answer = <STDIN>;
+                chomp $answer;
+                die "GAME OVER. Better luck next time!\n" unless lc($answer) =~ /^ye?s?$/;
+            }
+        }
     }
+    open(my $fh, '>', $ini);
+    print $fh "destination = $destination\n";
+    close $fh;
 }
 
-# Process the pictures tree
+say "Processing source directories..." unless $silent;
 my $website = Photography::Website::create_album($source);
 
-# Generate the website
+say "Generating website resources..." unless $silent;
 Photography::Website::generate($website);
+
+print "\n" unless $silent;
+
+my @greetings = (
+    "Keep on photographing!",
+    "See you next time!",
+    "Lovely pictures!",
+    "Love your work!",
+    "Signing off...",
+    "One day, you'll be famous.",
+    "Keep 'm coming!",
+    "Request new features on Github.",
+    "It's wonderful!",
+    "Wasn't that fast?",
+);
+
+my $greeting = $greetings[int(rand(@greetings))];
+say "Website generation complete. $greeting" unless $silent;

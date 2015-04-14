@@ -83,6 +83,7 @@ sub create_album {
         my $item;
         if (-f) {
             $item = Photography::Website::Configure::image($_, $album) || next;
+            say "  Found image: $_" if $verbose;
         }
         elsif (-d) {
             $item = create_album($_, $album) || next;
@@ -98,7 +99,7 @@ sub create_album {
 
 The second main entry point that generates the actual website images
 and HTML files at the destinations specified inside the $album data
-structure. Returns nothing.
+structure. Returns true if the index of $album has been regenerated.
 
 =cut
 
@@ -111,7 +112,7 @@ sub generate {
         push @{$album->{protected}}, 'static';
         my $static_source = catdir(dist_dir($DIST), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
-        dircopy($static_source, $static_destination) and say "/static/";
+        dircopy($static_source, $static_destination) and say "  /static/" unless $silent;
     }
 
     # Recursively update image files and album pages
@@ -152,6 +153,7 @@ sub update_image {
         return 1;
     }
     else {
+        say "  No update needed for $img->{source}" if $verbose;
         return 0;
     }
 }
@@ -182,7 +184,7 @@ sub update_album {
         my $file = basename($dest);
         if (not exists $album->{allfiles}->{$dest}) {
             if (not grep {$_ eq $file} @{$album->{protected}}) {
-                say "Removing $dest" unless $silent;
+                say "  Removing $dest" unless $silent;
                 remove_tree($dest);
                 $update_needed = 1;
             }
@@ -192,6 +194,9 @@ sub update_album {
     if ($update_needed) {
         build_preview($album) unless $album->{unlisted};
         build_index($album);
+    }
+    else {
+        say "  Not regenerating $album->{index}" if $verbose;
     }
 
     return $update_needed;
@@ -206,7 +211,7 @@ watermark or scale and thumbnail commands.
 
 sub build_image {
     my $img = shift;
-    say $img->{url} unless $silent;
+    say "  $img->{url}" unless $silent;
     make_path(dirname($img->{destination}));
     if ($img->{watermark}) {
         system($img->{watermark_command},
@@ -264,7 +269,7 @@ sub build_index {
         $album->{unlisted} = 1;
     }
 
-    say $album->{url} . "index.html";
+    say "  $album->{url}index.html" unless $silent;
     $tt->process($album->{template}, $album, $album->{index})
         || die $tt->error();
 }
@@ -296,6 +301,7 @@ sub build_preview {
     # Shuffle the list and pick N preview images
     @images = @{[shuffle @images]}[0..($album->{preview})-1];
 
+    say "  Creating preview of $album->{preview} images for '$album->{name}'..." if $verbose;
     make_path(dirname($album->{thumbnail}));
     system($album->{preview_command},
            @images,
