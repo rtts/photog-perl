@@ -1,3 +1,9 @@
+0.26      2015-04-14 18:07:52+02:00 Europe/Amsterdam
+        - The destination argument of the photog command is now optional
+        - More useful output when verbose
+        - More silent output when silent
+        - A friendly goodbye message after each run
+
 0.25      2015-04-13 14:36:04+02:00 Europe/Amsterdam
         - Rewrote the photog-xxx commands from bash to Perl so they work in Windows
         - This fixes bug #103486 "No Perl script found in input"

@@ -1,6 +1,6 @@
 my $DIST = 'Photography-Website';
 package Photography::Website::Configure;
-$Photography::Website::Configure::VERSION = '0.25';
+$Photography::Website::Configure::VERSION = '0.26';
 use warnings;
 use strict;
 
