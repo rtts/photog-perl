@@ -14,7 +14,7 @@
 
 <h1 id="NAME">NAME</h1>
 
-<p>Photography::Website</p>
+<p>Photography::Website - Photography Website Generator</p>
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
@@ -31,7 +31,7 @@
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<p>The Photography::Website module contains the core of the Photog! photography website generator. Please refer to photog(3) for a more general introduction on how to run Photog! and how to configure it. All of the configuration options are documented in Photography::Website::Configure(1). If you want to learn about the internals of Photog!, read on.</p>
+<p>The Photography::Website module contains the core of the Photog! photography website generator. Please refer to <a>photog</a> for a more general introduction on how to run Photog! and how to configure it. All of the configuration options are documented in <a>Photography::Website::Configure</a>. If you want to learn about the internals of Photog!, read on.</p>
 
 <p>A photography website is generated in two stages. The first stage searches the source directory tree for images and optional <code>photog.ini</code> files, and processes them into a data structure of nested albums. An album is simply a hash of configuration variables one of which ($album-&gt;{items}) references a list of further hashes. This stage is kicked off by the create_album() function.</p>
 
@@ -50,7 +50,7 @@
 <dt id="generate-album"><b>generate</b>(<i>$album</i>)</dt>
 <dd>
 
-<p>The second main entry point that generates the actual website images and HTML files at the destinations specified inside the $album data structure. Returns nothing.</p>
+<p>The second main entry point that generates the actual website images and HTML files at the destinations specified inside the $album data structure. Returns true if the index of $album has been regenerated.</p>
 
 </dd>
 <dt id="update_image-image-force"><b>update_image</b>(<i>$image</i>[, <i>$force</i>])</dt>
@@ -111,11 +111,11 @@
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>photog(3), Photography::Website::Configuration(1)</p>
+<p><a>photog</a>, <a>Photography::Website::Configure</a></p>
 
 <h1 id="AUTHOR">AUTHOR</h1>
 
-<p>Photog! was written by Jaap Joris Vens &lt;jj@rtts.eu&gt;, and is used to create his personal photography website at http://www.superformosa.nl/</p>
+<p>Photog! was written by Jaap Joris Vens &lt;jj@rtts.eu&gt;, and is used to create his personal photography website at <a href="http://www.superformosa.nl/">http://www.superformosa.nl/</a></p>
 
 
 </body>

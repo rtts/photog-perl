@@ -24,12 +24,12 @@
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<p>Photog! turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs. To get started, simply <code>cd</code> to the source directory and call <code>photog</code> with the destination directory as its argument. Example:</p>
+<p>Photog! turns a directory tree of source images into a photography website with nested albums of chronologically sorted photographs. To get started, simply <code>cd</code> to the source directory and call <code>photog</code>:</p>
 
-<pre><code>    $ cd ~/Pictures
-    $ photog ~/public_html</code></pre>
+<pre><code>    $ cd Pictures
+    $ photog</code></pre>
 
-<p>Upon the first run, Photog! writes the website destination to the file <code>photog.ini</code> inside the current directory. Subsequent runs of the <code>photog</code> command require no arguments, and do nothing unless images inside the source directory tree have changed. Photog! only regenerates the parts of the website that should be updated.</p>
+<p>Upon the first run, Photog! asks the user for a destination directory, which it writes to the file <code>photog.ini</code> inside the source directory. The destination can also be specified on the command line as the final argument, or inside a pre-existing <code>photog.ini</code> file. Subsequent runs of the <code>photog</code> command do nothing unless the contents of the source directory have changed. Photog! only regenerates the parts of the website that should be updated.</p>
 
 <h1 id="OPTIONS">OPTIONS</h1>
 
@@ -53,7 +53,7 @@
 
 <p>Photog! reads configuration directives from a file named <code>photog.ini</code> inside the source directory. Subdirectories can contain additional configuration files that override certain settings from the root configuration file. A value set in the configuration file will become the new default value for all child albums.</p>
 
-<p>Config files consist of a number of <code>variable = value</code> directives. Empty lines and lines starting with a <code>#</code> are ignored. All the possible configuration variables are documented in the manual page of Photography::Website::Configure(3), the module that implements Photog!&#39;s configuration system. Here is an example configuration file:</p>
+<p>Config files consist of a number of <code>variable = value</code> directives. Empty lines and lines starting with a <code>#</code> are ignored. All the possible configuration variables are documented in the manual page of <a>Photography::Website::Configure</a>, the module that implements Photog!&#39;s configuration system. Here is an example configuration file:</p>
 
 <pre><code>    # This is an example ~/Pictures/photog.ini
     title = Super Formosa Photography
@@ -67,7 +67,12 @@
 
 <p>Photog! comes with a file named <code>template.html</code> that uses Template::Toolkit syntax to render each album&#39;s <code>index.html</code>. The default template uses Javascript to &quot;pack&quot; images into horizontal rows. You can supply the path to your own template with the <b>template</b> configuration variable.</p>
 
-<p>All the configuration options automatically become template variables. An additional template variable, <b>items</b>, contains the sorted list of the album&#39;s children. Here is an example template (see Template::Manual::Intro(3) for an introduction to the template syntax):</p>
+<p>The easiest way to create your own template is to start with a copy of the default template. The location of the default template varies by platform, but it can always be found with the following Perl oneliner:</p>
+
+<pre><code>    perl -MFile::ShareDir=dist_file -E \
+    &#39;say dist_file(&quot;Photography-Website&quot;, &quot;template.html&quot;)&#39;</code></pre>
+
+<p>All the configuration options automatically become template variables. An additional template variable, <b>items</b>, contains the sorted list of the album&#39;s children. Here is an example template (see <a>Template::Manual::Intro</a> for an introduction to the template syntax):</p>
 
 <pre><code>    &lt;h1&gt;Welcome to [% title %]!&lt;/h1&gt;
     &lt;p&gt;These are my photo albums:&lt;/p&gt;
@@ -81,15 +86,15 @@
 
 <h1 id="ADDITIONAL-COMMANDS">ADDITIONAL COMMANDS</h1>
 
-<p>Photog! calls the commands <code>photog-scale</code>, <code>photog-watermark</code>, <code>photog-thumbnail</code>, and <code>photog-preview</code> to generate scaled, watermarked, thumbnail and preview images. These commands are simple shell scripts that have been installed to the same path as the <code>photog</code> command. They call ImageMagick to do the actual image processing. You can also call these commands directly. Each command prints out a simple usage instruction when called with no arguments. If you want to change Photog!&#39;s behavior for generating images and thumbnails, you can supply your own commands in the configuration file (see Photography::Website::Configure(3)).</p>
+<p>Photog! calls the commands <code>photog-scale</code>, <code>photog-watermark</code>, <code>photog-thumbnail</code>, and <code>photog-preview</code> to generate scaled, watermarked, thumbnail and preview images. These commands are simple shell scripts that have been installed to the same path as the <code>photog</code> command. They call ImageMagick to do the actual image processing. Each command prints out a simple usage instruction when called with no arguments. If you want to change Photog!&#39;s behavior for generating images and thumbnails, you can supply your own commands in the configuration file (see <a>Photography::Website::Configure</a>).</p>
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
-<p>Photography::Website(3), Photography::Website::Configure(3)</p>
+<p><a>Photography::Website</a>, <a>Photography::Website::Configure</a></p>
 
 <h1 id="AUTHOR">AUTHOR</h1>
 
-<p>Photog! was written by Jaap Joris Vens &lt;jj@rtts.eu&gt;, and is used to create his personal photography website at http://www.superformosa.nl/</p>
+<p>Photog! was written by Jaap Joris Vens &lt;jj@rtts.eu&gt;, and is used to create his personal photography website at <a href="http://www.superformosa.nl/">http://www.superformosa.nl/</a></p>
 
 
 </body>
