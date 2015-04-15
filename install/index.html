@@ -65,18 +65,26 @@ supports. In your terminal window, execute:
     cpan Photography::Website
 
 This command automatically downloads and installs Photog! from the
-[Comprehensive Perl Archive Network (CPAN)](http://www.cpan.org/).  Sit
-back, relax, and watch some interesting output scroll by on your
-terminal. Depending on your system's configuration, the `cpan` utility
-might ask you some questions.  You can safely press Enter to accept
-the default answers.
+[Comprehensive Perl Archive Network (CPAN)](http://www.cpan.org/). During
+the installation process the `cpan` utility might ask you some
+questions. You can safely press Enter to accept the default answers.
 
-When you get your prompt back, Photog! is successfully installed on
-your system!
+Perl has an ecosystem with a heavy emphasis on the testing of
+software. The `cpan` command automatically downloads all the modules
+that Photog!  depends on, and it runs all the tests that the authors
+of those modules have written. Sit back, relax, and enjoy the output
+of all the downloading, testing and installing. It might take a while.
 
-**NOTE FOR MAC AND LINUX USERS: If you experience any problems, you
-can also try to install as root by prepending `sudo` to the above
-command.**
+When you get your prompt back without error messages, Photog! is
+successfully installed on your system. If the installation has failed,
+this is probably because one of the tests failed. You can work around
+this by instructing `cpan` to install anyway:
+
+    cpan -f -i Photography::Website
+
+A note for Mac and Linux users: If you experience any problems, you
+can also try to install as root by prepending `sudo` to the installation
+command.
 
 Creating your first website
 ===========================
