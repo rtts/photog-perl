@@ -1,4 +1,5 @@
 {{$NEXT}}
+        - Expanded the regex that recognizes images (.jpeg, .JPG now also valid)
 
 0.26      2015-04-14 18:07:52+02:00 Europe/Amsterdam
         - The destination argument of the photog command is now optional

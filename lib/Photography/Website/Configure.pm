@@ -516,7 +516,10 @@ sub save_config {
 }
 
 sub is_image {
-    return shift =~ /\.jpg$/;
+    my $name = lc(shift);
+    return 1 if $name =~ /\.jpg$/;
+    return 1 if $name =~ /\.jpeg$/;
+    return 0;
 }
 
 sub strip_suffix {
