@@ -1,6 +1,6 @@
 my $DIST = 'Photography-Website';
 package Photography::Website::Configure;
-$Photography::Website::Configure::VERSION = '0.26';
+$Photography::Website::Configure::VERSION = '0.27';
 use warnings;
 use strict;
 
@@ -391,8 +391,8 @@ website images.
 
 =item B<sort>
 
-Photos are always sorted according to EXIF date. Possible sort orders
-are: C<ascending> and C<descending>. The default value is
+Photos are sorted according to EXIF date. Possible sort orders are:
+C<ascending>, C<descending>, or C<random>. The default value is
 C<descending>.
 
 =cut
@@ -516,7 +516,10 @@ sub save_config {
 }
 
 sub is_image {
-    return shift =~ /\.jpg$/;
+    my $name = lc(shift);
+    return 1 if $name =~ /\.jpg$/;
+    return 1 if $name =~ /\.jpeg$/;
+    return 0;
 }
 
 sub strip_suffix {

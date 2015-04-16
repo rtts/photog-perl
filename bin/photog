@@ -76,7 +76,7 @@ inside C<~/Pictures> will also have the same title, watermark,
 template and destination, because these values are inherited by all
 child albums (unless they are overridden by additional C<photog.ini>
 files). Again, for a complete list of all possible configuration
-variables consult the Photography::Website::Configure(3) manual page.
+variables consult the L<Photography::Website::Configure> manual page.
 
 =head1 TEMPLATING
 
