@@ -391,8 +391,8 @@ website images.
 
 =item B<sort>
 
-Photos are always sorted according to EXIF date. Possible sort orders
-are: C<ascending> and C<descending>. The default value is
+Photos are sorted according to EXIF date. Possible sort orders are:
+C<ascending>, C<descending>, or C<random>. The default value is
 C<descending>.
 
 =cut

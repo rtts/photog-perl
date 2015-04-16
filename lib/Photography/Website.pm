@@ -260,10 +260,15 @@ sub build_index {
         }
     }
 
-    @{$album->{items}} = sort {
-        return $a->{date} cmp $b->{date} if $album->{sort} eq 'ascending';
-        return $b->{date} cmp $a->{date} if $album->{sort} eq 'descending';
-    } @{$album->{items}};
+    if ($album->{sort} eq 'ascending') {
+        @{$album->{items}} = sort {$a->{date} cmp $b->{date}} @{$album->{items}};
+    }
+    elsif ($album->{sort} eq 'descending') {
+        @{$album->{items}} = sort {$b->{date} cmp $a->{date}} @{$album->{items}};
+    }
+    elsif ($album->{sort} eq 'random') {
+        @{$album->{items}} = shuffle @{$album->{items}};
+    }
 
     if (not -f $album->{thumbnail}) {
         $album->{unlisted} = 1;
