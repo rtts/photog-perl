@@ -373,7 +373,7 @@ images for an album. Allowed values are 3, 6, and 9. The default is 9.
 
 =cut
 
-    $album->{preview} ||= $parent->{preview} || 9;
+    $album->{preview} ||= 9;
 
 =item B<watermark>
 
