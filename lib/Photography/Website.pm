@@ -269,6 +269,9 @@ sub build_index {
     elsif ($album->{sort} eq 'random') {
         @{$album->{items}} = shuffle @{$album->{items}};
     }
+    elsif ($album->{sort} eq '365') {
+        @{$album->{items}} = reverse @{$album->{items}};
+    }
 
     if (not -f $album->{thumbnail}) {
         $album->{unlisted} = 1;
