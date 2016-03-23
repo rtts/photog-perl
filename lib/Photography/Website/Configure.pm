@@ -37,11 +37,22 @@ default value.
 sub image {
     my $source = shift;
     my $parent = shift;
-    return if not is_image($source);
-    my $img = {
-        type   => 'image',
-        parent => $parent,
-    };
+    my $img;
+    if (is_image($source)) {
+        $img = {
+            type   => 'image',
+            parent => $parent,
+        };
+    }
+    elsif (is_video($source)) {
+        $img = {
+            type   => 'video',
+            parent => $parent,
+        };
+    }
+    else {
+        return 0;
+    }
     my $filename = basename($source);
 
 =item B<name>
@@ -77,6 +88,9 @@ The relative URL of the image thumbnail, i.e., C<thumbnails/$filename>.
 =cut
 
     $img->{src}    = "thumbnails/$filename";
+    if ($img->{type} eq "video") {
+        $img->{src} = $img->{src} . '.png';
+    }
 
 =item B<source>
 
@@ -101,7 +115,6 @@ The path to the image thumbnail.
 =cut
 
     $img->{thumbnail} = catfile($parent->{destination}, $img->{src});
-
 
     # These are documented further below
     $img->{watermark}         = $parent->{watermark};
@@ -519,6 +532,15 @@ sub is_image {
     my $name = lc(shift);
     return 1 if $name =~ /\.jpg$/;
     return 1 if $name =~ /\.jpeg$/;
+    return 0;
+}
+
+sub is_video {
+    my $name = lc(shift);
+    return 1 if $name =~ /\.webm$/;
+    return 1 if $name =~ /\.ogg$/;
+    return 1 if $name =~ /\.avi$/;
+    return 1 if $name =~ /\.mp4$/;
     return 0;
 }
 

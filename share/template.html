@@ -21,6 +21,8 @@
       [% ELSE %]
       <img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.src %]">
       [% END %]
+      [% ELSIF item.type == 'video' %]
+      <video width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.href %]" poster="[% item.src %]" controls></video>
       [% ELSIF item.type == 'album' %]
       [% UNLESS item.unlisted %]
       <a title="Click to view complete album" href="[% item.href %]index.html"><img alt="[% item.name %]" width="[% item.width %]" data-width="[% item.width %]" height="[% item.height %]" data-height="[% item.height %]" src="[% item.src %]"></a>
@@ -71,7 +73,7 @@
       function run(max_height) {
         var size = $('#album').width() - 4;
         var n = 0;
-        var images = $('#album img');
+        var images = $('#album img, #album video');
         w: while (images.length > 0) {
           for (var i = 1; i < images.length + 1; ++i) {
             var slice = images.slice(0, i);

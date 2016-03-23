@@ -142,7 +142,7 @@ a {
   font-size: 0;
 }
 
-#album img {
+#album img, #album video {
   border: none;
   margin-bottom: 4px;
   margin-left: 4px;

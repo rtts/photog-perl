@@ -83,7 +83,8 @@ sub create_album {
         my $item;
         if (-f) {
             $item = Photography::Website::Configure::image($_, $album) || next;
-            say "  Found image: $_" if $verbose;
+            say "  Found image: $_" if $verbose and $item->{type} eq 'image';
+            say "  Found video: $_" if $verbose and $item->{type} eq 'video';
         }
         elsif (-d) {
             $item = create_album($_, $album) || next;
@@ -122,6 +123,11 @@ sub generate {
                 $outdated = 1;
             }
         }
+        elsif ($item->{type} eq 'video') {
+            if (update_video($item)) {
+                $outdated = 1;
+            }
+        }
         elsif ($item->{type} eq 'album') {
             if (generate($item, $album) and not $item->{unlisted}) {
                 $outdated = 1;
@@ -154,6 +160,32 @@ sub update_image {
     }
     else {
         say "  No update needed for $img->{source}" if $verbose;
+        return 0;
+    }
+}
+
+=item B<update_video>(I<$video>[, I<$force>])
+
+Given an $video node, checks if the video source is newer than the
+destination. If needed, or if $force is true, it builds new
+destination files. Returns true if anything has been (re)generated.
+
+=cut
+
+sub update_video {
+    my $video         = shift;
+    my $update_needed = shift || (
+        not -f $video->{destination} or
+        not -f $video->{thumbnail} or
+        is_newer($video->{source}, $video->{destination})
+    );
+
+    if ($update_needed) {
+        build_video($video);
+        return 1;
+    }
+    else {
+        say "  No update needed for $video->{source}" if $verbose;
         return 0;
     }
 }
@@ -233,6 +265,26 @@ sub build_image {
        ) and die "ERROR: Thumbnail command failed\n";
 }
 
+=item B<build_video>(I<$video>)
+
+Simply copies the video source to the video destination.
+
+=cut
+
+sub build_video {
+    my $video = shift;
+    say "  $video->{url}" unless $silent;
+    make_path(dirname($video->{destination}));
+    system('cp', $video->{source}, $video->{destination})
+        and die "ERROR: Video copy failed\n";
+    make_path(dirname($video->{thumbnail}));
+    if (-f $video->{thumbnail}) {
+        unlink $video->{thumbnail};
+    }
+    system("ffmpeg -i '$video->{source}' -ss 00:00:05 -vframes 1 '$video->{thumbnail}' > /dev/null 2>&1")
+        and die "ERROR: Video thumbnail failed (is ffmpeg installed?)";
+}
+
 =item B<build_index>(I<$album>)
 
 Given an $album node, builds an album preview image and the album's
@@ -254,9 +306,17 @@ sub build_index {
 
     # Calculate and store image sizes and dates
     for (@{$album->{items}}) {
-        ($_->{width}, $_->{height}) = imgsize($_->{thumbnail});
         if ($_->{type} eq 'image') {
+            ($_->{width}, $_->{height}) = imgsize($_->{thumbnail});
             $_->{date} = exifdate($_->{source});
+        }
+        elsif ($_->{type} eq 'album') {
+            ($_->{width}, $_->{height}) = imgsize($_->{thumbnail});
+        }
+        elsif ($_->{type} eq 'video') {
+            $_->{width} = 533;
+            $_->{height} = 300;
+            $_->{date} = DateTime->from_epoch(epoch => (stat $_->{source})[9]);
         }
     }
 
