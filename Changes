@@ -1,5 +1,6 @@
 {{$NEXT}}
         - Preview number always defaults no 9 (no more inheritance)
+        - Config file syntax now allows "protected = [ filename.ext ]" to force array
 
 0.27      2015-04-16 11:31:14+02:00 Europe/Amsterdam
         - Added an option for randomized sorting ("sort = random")

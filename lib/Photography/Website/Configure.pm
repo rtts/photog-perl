@@ -497,7 +497,7 @@ sub get_config {
     my $directory = shift;
     my $file = catfile($directory, $CONFIG_FILE);
     if (-f $file) {
-        return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1) };
+        return { ParseConfig(-ConfigFile=>$file, -AutoTrue=>1, -ForceArray=>1) };
     }
     else {
         return 0;
