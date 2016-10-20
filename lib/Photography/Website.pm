@@ -113,7 +113,7 @@ sub generate {
         push @{$album->{protected}}, 'static';
         my $static_source = catdir(dist_dir($DIST), 'static');
         my $static_destination = catdir($album->{destination}, 'static');
-        dircopy($static_source, $static_destination) and say "  /static/" unless $silent;
+        #dircopy($static_source, $static_destination) and say "  /static/" unless $silent;
     }
 
     # Recursively update image files and album pages
@@ -203,7 +203,7 @@ sub update_album {
     my $album         = shift;
     my $update_needed = shift || ( # optional
         not -f $album->{index} or
-        (not -f $album->{thumbnail} and not $album->{unlisted}) or
+        (not -f $album->{thumbnail} and not $album->{unlisted} and not $album->{parent}->{hide_children}) or
         is_newer($album->{config}, $album->{index})
     );
 
@@ -224,7 +224,7 @@ sub update_album {
     }
 
     if ($update_needed) {
-        build_preview($album) unless $album->{unlisted};
+        build_preview($album) unless $album->{unlisted} or $album->{parent}->{hide_children};
         build_index($album);
     }
     else {

@@ -308,6 +308,15 @@ false (except for the root album)
 
     $album->{unlisted} ||= (not defined $album->{parent});
 
+=item B<hide_children>
+
+Boolean value that specifies whether this album will link to child albums.
+Not inherited, always defaults to false.
+
+=cut
+
+    $album->{hide_children} ||= 0;
+
 =item B<date>
 
 The ISO 8601 date and optionally time of this album. This is used when
