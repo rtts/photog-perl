@@ -214,6 +214,16 @@ from the parent album.
             "ERROR: Destination not specified";
     }
 
+=item B<sort>
+
+Photos are sorted according to EXIF date. Possible sort orders are:
+C<ascending>, C<descending>, or C<random>. The default value is
+C<asscending>.
+
+=cut
+
+    $album->{sort} ||= 'ascending';
+
 =item I<Dynamic variables>
 
 =item B<slug>
@@ -410,16 +420,6 @@ website images.
     if (not exists $album->{watermark}) {
         $album->{watermark} = $parent->{watermark} || '';
     }
-
-=item B<sort>
-
-Photos are sorted according to EXIF date. Possible sort orders are:
-C<ascending>, C<descending>, or C<random>. The default value is
-C<descending>.
-
-=cut
-
-    $album->{sort} ||= $parent->{sort} || 'descending';
 
 =item B<fullscreen>
 
