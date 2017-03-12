@@ -343,7 +343,7 @@ on a page.
 =item B<protected>
 
 A list of filenames that will not be automatically deleted at the
-album's destination directory. Defaults to ('index.html',
+album's destination directory. Defaults to ('all.zip', 'index.html',
 'thumbnails'). The root album will also get the directory 'static'
 appended to this list.
 
@@ -352,7 +352,7 @@ appended to this list.
     if (not exists $album->{protected}) {
         $album->{protected} = [];
     }
-    push @{$album->{protected}}, ('index.html', 'thumbnails');
+    push @{$album->{protected}}, ('all.zip', 'index.html', 'thumbnails');
 
 =item I<Inherited variables>
 
