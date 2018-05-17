@@ -270,10 +270,10 @@ sub build_index {
         @{$album->{items}} = shuffle @{$album->{items}};
     }
     elsif ($album->{sort} eq 'filename-ascending') {
-        @{$album->{items}} = sort { $a cmp $b } @{$album->{items}};
+        @{$album->{items}} = sort { $a->{name} cmp $b->{name} } @{$album->{items}};
     }
     elsif ($album->{sort} eq 'filename-descending') {
-        @{$album->{items}} = sort { $b cmp $a } @{$album->{items}};
+        @{$album->{items}} = sort { $b->{name} cmp $a->{name} } @{$album->{items}};
     }
 
     if (not -f $album->{thumbnail}) {
