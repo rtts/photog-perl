@@ -269,6 +269,12 @@ sub build_index {
     elsif ($album->{sort} eq 'random') {
         @{$album->{items}} = shuffle @{$album->{items}};
     }
+    elsif ($album->{sort} eq 'filename-ascending') {
+        @{$album->{items}} = sort { $a cmp $b } @{$album->{items}};
+    }
+    elsif ($album->{sort} eq 'filename-descending') {
+        @{$album->{items}} = sort { $b cmp $a } @{$album->{items}};
+    }
 
     if (not -f $album->{thumbnail}) {
         $album->{unlisted} = 1;
