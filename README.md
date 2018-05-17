@@ -22,7 +22,7 @@ release. Here are the installation instructions:
 ### Prerequisites
 
 * **ImageMagick**: It's best to install this using your operating
-  system package manager, e.g., `[apt-get|yum|brew|pacman|apt-cyg]
+  system package manager, e.g., `[apt-get|yum|dnf|brew|pacman|apt-cyg]
   install imagemagick`.
 
 ### Installation - the easy way
