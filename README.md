@@ -5,7 +5,7 @@ Photog! turns a directory tree of source images into a photography
 website with nested albums of chronologically sorted photographs. It
 is created by [Jaap Joris Vens][1] who uses it for
 [his personal photography website][2]. Photog also has
-[it's own website][3] with detailed installation instructions, online
+[its own website][3] with detailed installation instructions, online
 manual pages, and nice fonts.
 
 [1]: http://rtts.eu/about/
