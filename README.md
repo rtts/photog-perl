@@ -1,11 +1,12 @@
 Photog!
 =======
 
-Photog! turns a directory tree of source images into a photography
-website with nested albums of chronologically sorted photographs. It
-is created by [Jaap Joris Vens][1] who uses it for
+Photog! is a static photo gallery generator that displays images in
+a justified gallery. It turns a directory tree of source images into
+a photography website with nested albums of chronologically sorted
+photographs. It is created by [Jaap Joris Vens][1] who uses it for
 [his personal photography website][2]. Photog also has
-[it's own website][3] with detailed installation instructions, online
+[its own website][3] with detailed installation instructions, online
 manual pages, and nice fonts.
 
 [1]: http://rtts.eu/about/
@@ -22,7 +23,7 @@ release. Here are the installation instructions:
 ### Prerequisites
 
 * **ImageMagick**: It's best to install this using your operating
-  system package manager, e.g., `[apt-get|yum|brew|pacman|apt-cyg]
+  system package manager, e.g., `[apt-get|yum|dnf|brew|pacman|apt-cyg]
   install imagemagick`.
 
 ### Installation - the easy way

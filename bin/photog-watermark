@@ -8,6 +8,6 @@ Usage: photog-watermark original.jpg watermark.png web.jpg
 EOF
 and exit if @ARGV != 3;
 
-my $command = qq[convert "$ARGV[0]" -resize 10000x2160 miff:- | composite "$ARGV[1]" - -gravity southeast miff:- | convert - -quality 88% "$ARGV[2]"];
+my $command = qq[convert "$ARGV[0]" -auto-orient -resize 10000x2160 miff:- | composite "$ARGV[1]" - -gravity southeast miff:- | convert - -quality 88% "$ARGV[2]"];
 
 exit !!system($command);
