@@ -1,6 +1,8 @@
 Photog!
 =======
 
+**NOTICE: Activity in this repository has stalled. For continued development of Photog! please visit [@konrul's fork](https://github.com/konrul/photog) or checkout [the complete rewrite in Python](https://github.com/rtts/photog-python)**
+
 Photog! turns a directory tree of source images into a photography
 website with nested albums of chronologically sorted photographs. It
 is created by [Jaap Joris Vens][1] who uses it for
