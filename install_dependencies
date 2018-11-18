@@ -1,0 +1,2 @@
+#!/bin/sh
+cpanm Algorithm::Numerical::Shuffle Config::General Cwd DateTime File::Basename File::Copy::Recursive File::Path File::ShareDir File::Spec::Functions IPC::Cmd Image::ExifTool Image::Size String::Random Template
